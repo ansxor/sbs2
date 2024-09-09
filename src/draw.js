@@ -49,7 +49,11 @@ const Draw = NAMESPACE({
 	avatar_url(user, size=AVATAR_SIZE) {
 		if (!user || !user.avatar || user.avatar==="0")
 			return "resource/avatar.png"
-		return Req.image_url(user.avatar, size, true)
+		// only `Author` contains `avatar_pixel`
+		if (Object.hasOwn(user, 'avatar_pixel') && user.avatar_pixel)
+			return Req.image_url(user.avatar)
+		else
+			return Req.image_url(user.avatar, size, true)
 	},
 	
 	//📥 user‹User›

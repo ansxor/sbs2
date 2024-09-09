@@ -37,7 +37,7 @@ class FileMeta {
 class Author {
 	constructor(message, user, content) {
 		let valid = x => x && ('string'==typeof x || 'number'==typeof x)
-		let {a, big, b, n=b} = message.values
+		let {a, big, b, n=b, apx} = message.values
 		if (user) {
 			this.username = user.username
 			this.bridge = user.id==5410 && user.username=="sbs_discord_bridge"
@@ -45,7 +45,8 @@ class Author {
 		}
 		this.nickname = valid(n) ? Author.filter_nickname(n) : null
 		this.bigAvatar = valid(big) ? String(big) : null
-		this.merge_hash = `${message.contentId},${message.createUserId},${this.avatar},${this.bigAvatar||""},${this.username} ${this.nickname||""}`
+		this.avatar_pixel = apx ?? false
+		this.merge_hash = `${message.contentId},${message.createUserId},${this.avatar},${this.bigAvatar||""},${this.avatar_pixel||""},${this.username} ${this.nickname||""}`
 		this.date = new Date(message.createDate)
 		if (content)
 			this.page_name = content.name2
