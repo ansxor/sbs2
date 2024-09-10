@@ -2,12 +2,39 @@
 let ql
 ~function self() {
 	const dpr = +window.devicePixelRatio
-	const s = document.documentElement.style
-	let adpr = dpr > 0.75 ? dpr : 1
-	s.setProperty('--X', adpr || 1) // device pixels per css pixel
-	s.setProperty('--RX', Math.round(adpr) || 1) // rounded
-	// refresh listener
+	// refresh listener*/
 	ql && ql.removeListener(self)
 	ql = matchMedia("(-webkit-device-pixel-ratio: "+dpr+")")
 	ql.addEventListener('change', self)
+	for (let img of document.querySelectorAll('.apx')) {
+		recalc_image_scale(img)
+	}
 }()
+
+function recalc_image_scale(img) {
+	let dpr = +window.devicePixelRatio
+	let resx = img.naturalWidth
+	if (!resx)
+		return
+	let resy = img.naturalHeight
+	
+	let maxx = 50
+	let maxy = 50
+	
+	let basex = resx / dpr
+	let basey = resy / dpr
+	let scalex = maxx / basex
+	let scaley = maxy / basey
+	let scale = Math.min(scalex, scaley)
+	console.log(scale, basex, basey)
+	if (scale >= 1) {
+		img.classList.add("pixelAvatar")
+		img.style.setProperty('--avatar-width', Math.floor(scale) * basex + "px")
+		img.style.width = Math.floor(scale) * basex + "px"
+		img.style.height = Math.floor(scale) * basey + "px"
+	} else {
+		img.classList.remove("pixelAvatar")
+		img.style.width = ""
+		img.style.height = ""
+	}
+}

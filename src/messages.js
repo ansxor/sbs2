@@ -323,7 +323,7 @@ class MessageList {
 				if (!this.controls_message)
 					return
 				if (this.controls.contains(ev.target))
-				    return
+					return
 				if (this.controls_message.contains(ev.target))
 					;//return
 				this.show_controls(null)
@@ -346,33 +346,19 @@ MessageList.draw_block = function(comment, part) {
 	e.dataset.uid = comment.createUserId
 	/** @type {HTMLImageElement} */	
 	let avatar = e.firstChild
-
-	const img = new Image();
-
-	img.onload = function() {
-		avatar.src = img.src;
-
+	avatar.src = Draw.avatar_url(author)
+	
+	if (author.bigAvatar) {
+		avatar.className = "bigAvatar"
+		// for now we don't support both
+	} else {
 		if (author.avatar_pixel) {
-			let width = img.width;
-			let height = img.height;
-
-			while (width > 50  && height > 50) {
-				width /= 2;
-				height /= 2;
+			avatar.classList.add("apx")
+			avatar.onload = function() {
+				recalc_image_scale(this)
 			}
-
-			avatar.classList.add("apx");
-			avatar.style.width = "calc("+width+"px * var(--RX,1) / var(--X,1))"
-			avatar.style.height = "calc("+height+"px * var(--RX,1) / var(--X,1))"
-			avatar.style.maxWidth = "52px"
-			avatar.style.maxHeight = "52px"
 		}
-
-		if (author.bigAvatar)
-			avatar.classList.add("bigAvatar")
-	};
-
-	img.src = Draw.avatar_url(author);
+	}
 	
 	let header = avatar.nextSibling
 	
@@ -401,7 +387,7 @@ MessageList.draw_block = function(comment, part) {
 }.bind({
 	block: 𐀶`
 <message-block>
-        <img class='avatar' width=50 height=50 alt="----">
+	<img class='avatar' width=50 height=50 alt="----">
 	<message-header>
 		<span><b class='pre'></b>:</span>
 		<span role=time></span>
