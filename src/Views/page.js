@@ -452,14 +452,15 @@ Settings.add({
 	order: -7000,
 })
 Settings.add({
-	name: 'avatar_pixel', label: "Pixelated Avatar", type: 'select',
+	name: 'avatar_pixel', label: "Pixelate My Avatar", type: 'select',
 	options: ['off', 'on'],
 	order: -6000,
 })
 Settings.add({
 	name: 'pixel_art', label: "Display Pixel Avatars", type: 'select',
 	options: ['on', 'off'],
-	order: 10,
+	default: 'off',
+	order: -5000,
 	update(value, type) {
 		if (value=='on')
 			Apx.start()
