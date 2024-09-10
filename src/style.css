@@ -546,6 +546,10 @@ form-table > .wide.label {
 	/*border-radius: 3px;*/
 	background: var(--T-avatar-bg);
 }
+.avatar.apx {
+	image-rendering: crisp-edges;
+	transform-origin: top right;
+}
 time {
 	font-size: 0.875em;
 	color: var(--T-time-color);

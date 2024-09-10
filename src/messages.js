@@ -344,11 +344,27 @@ MessageList.draw_block = function(comment, part) {
 	let author = comment.Author
 	
 	e.dataset.uid = comment.createUserId
-	
+	/** @type {HTMLImageElement} */	
 	let avatar = e.firstChild
-	avatar.src = Draw.avatar_url(author)
-	if (author.bigAvatar)
-		avatar.className = "bigAvatar"
+
+	const img = new Image();
+
+	img.onload = function() {
+		avatar.src = img.src;
+
+		if (author.avatar_pixel) {
+			avatar.classList.add("apx");
+			avatar.style.width = "calc("+img.width+"px * var(--RX,1) / var(--X,1))"
+			avatar.style.maxWidth = "calc(50px * var(--RX,1) / var(--X,1))"
+			avatar.style.height = "calc("+img.height+"px * var(--RX,1) / var(--X,1))"
+			avatar.style.maxHeight = "calc(50px * var(--RX,1) / var(--X,1))"
+		}
+
+		if (author.bigAvatar)
+			avatar.classList.add("bigAvatar")
+	};
+
+	img.src = Draw.avatar_url(author);
 	
 	let header = avatar.nextSibling
 	
