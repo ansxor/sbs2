@@ -456,6 +456,23 @@ Settings.add({
 	options: ['off', 'on'],
 	order: -6000,
 })
+Settings.add({
+	name: 'pixel_art', label: "Display Pixel Avatars", type: 'select',
+	options: ['on', 'off'],
+	order: 10,
+	update(value, type) {
+		if (value=='on')
+			Apx.start()
+		else {
+			Apx.stop()
+			for (let img of document.querySelectorAll('.apx')) {
+				img.classList.remove('pixelAvatar')
+				img.style.width = ""
+				img.style.height = ""
+			}
+		}
+	},
+})
 /*Settings.add({
 	name: 'big_avatar',
 	label: "Big Avatar",

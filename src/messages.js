@@ -354,8 +354,11 @@ MessageList.draw_block = function(comment, part) {
 	} else {
 		if (author.avatar_pixel) {
 			avatar.classList.add("apx")
-			avatar.onload = function() {
-				recalc_image_scale(this)
+			if (Settings.values.pixel_art=='on') {
+				// TODO: what if setting is turned off while image is loading?
+				avatar.onload = function() {
+					recalc_image_scale(this)
+				}
 			}
 		}
 	}
