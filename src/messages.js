@@ -353,11 +353,19 @@ MessageList.draw_block = function(comment, part) {
 		avatar.src = img.src;
 
 		if (author.avatar_pixel) {
+			let width = img.width;
+			let height = img.height;
+
+			while (width > 50  && height > 50) {
+				width /= 2;
+				height /= 2;
+			}
+
 			avatar.classList.add("apx");
-			avatar.style.width = "calc("+img.width+"px * var(--RX,1) / var(--X,1))"
-			avatar.style.maxWidth = "calc(50px * var(--RX,1) / var(--X,1))"
-			avatar.style.height = "calc("+img.height+"px * var(--RX,1) / var(--X,1))"
-			avatar.style.maxHeight = "calc(50px * var(--RX,1) / var(--X,1))"
+			avatar.style.width = "calc("+width+"px * var(--RX,1) / var(--X,1))"
+			avatar.style.height = "calc("+height+"px * var(--RX,1) / var(--X,1))"
+			avatar.style.maxWidth = "52px"
+			avatar.style.maxHeight = "52px"
 		}
 
 		if (author.bigAvatar)
@@ -393,7 +401,7 @@ MessageList.draw_block = function(comment, part) {
 }.bind({
 	block: 𐀶`
 <message-block>
-	<img class='avatar' width=50 height=50 alt="----">
+        <img class='avatar' width=50 height=50 alt="----">
 	<message-header>
 		<span><b class='pre'></b>:</span>
 		<span role=time></span>
