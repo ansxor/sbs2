@@ -323,7 +323,7 @@ class MessageList {
 				if (!this.controls_message)
 					return
 				if (this.controls.contains(ev.target))
-				    return
+					return
 				if (this.controls_message.contains(ev.target))
 					;//return
 				this.show_controls(null)
@@ -344,11 +344,24 @@ MessageList.draw_block = function(comment, part) {
 	let author = comment.Author
 	
 	e.dataset.uid = comment.createUserId
-	
+	/** @type {HTMLImageElement} */	
 	let avatar = e.firstChild
 	avatar.src = Draw.avatar_url(author)
-	if (author.bigAvatar)
+	
+	if (author.bigAvatar) {
 		avatar.className = "bigAvatar"
+		// for now we don't support both
+	} else {
+		if (author.avatar_pixel) {
+			avatar.classList.add("apx")
+			if (Settings.values.pixel_art=='on') {
+				// TODO: what if setting is turned off while image is loading?
+				avatar.onload = function() {
+					recalc_image_scale(this)
+				}
+			}
+		}
+	}
 	
 	let header = avatar.nextSibling
 	

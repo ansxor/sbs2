@@ -343,6 +343,8 @@ class PageView extends BaseView {
 				data.values.n = Author.filter_nickname(sv.nickname)
 			if (sv.big_avatar=='on' && sv.big_avatar_id)
 				data.values.big = sv.big_avatar_id
+			if (sv.avatar_pixel=='on')
+				data.values.apx = true
 			data.values.m = sv.chat_markup
 		}
 		data.text = this.$textarea.value
@@ -448,6 +450,28 @@ Settings.add({
 Settings.add({
 	name: 'avatar', label: "Device Avatar", type: 'text',
 	order: -7000,
+})
+Settings.add({
+	name: 'avatar_pixel', label: "Pixelated Avatar", type: 'select',
+	options: ['off', 'on'],
+	order: -6000,
+})
+Settings.add({
+	name: 'pixel_art', label: "Display Pixel Avatars", type: 'select',
+	options: ['on', 'off'],
+	order: 10,
+	update(value, type) {
+		if (value=='on')
+			Apx.start()
+		else {
+			Apx.stop()
+			for (let img of document.querySelectorAll('.apx')) {
+				img.classList.remove('pixelAvatar')
+				img.style.width = ""
+				img.style.height = ""
+			}
+		}
+	},
 })
 /*Settings.add({
 	name: 'big_avatar',

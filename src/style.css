@@ -636,6 +636,11 @@ message-block > img.avatar {
 	/*background-color: #AAB*/
 	border: 1px solid #777;
 }
+message-block > .avatar.pixelAvatar {
+	box-sizing: content-box;
+	margin-left: calc(var(--chat-avatar-size) - 2px - var(--avatar-width) + 0.5rem);
+	image-rendering: crisp-edges;
+}
 message-block > img.bigAvatar {
 	width: var(--chat-gutter);
 	height: 100%;
