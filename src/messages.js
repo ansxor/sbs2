@@ -356,8 +356,12 @@ MessageList.draw_block = function(comment, part) {
 			avatar.classList.add("apx")
 			if (Settings.values.pixel_art=='on') {
 				// TODO: what if setting is turned off while image is loading?
-				avatar.onload = function() {
-					recalc_image_scale(this)
+				if (avatar.naturalWidth) {
+					recalc_image_scale(avatar)
+				} else {
+					avatar.decode().then(ok=>{
+						recalc_image_scale(avatar)
+					})
 				}
 			}
 		}
