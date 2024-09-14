@@ -20,6 +20,7 @@ class ActivityItem {
 		this.date = -Infinity
 		
 		if (this.content) {
+			this.$root.dataset.pid = this.content.id
 			this.$root.href = Nav.entity_link(this.content)
 			this.redraw_page()
 		}
