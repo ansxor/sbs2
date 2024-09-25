@@ -61,6 +61,7 @@ Object.assign(Author.prototype, {
 	nickname: null,
 	bridge: false,
 	bigAvatar: null,
+	avatar_pixel: false,
 	merge_hash: "0,0,0,,missingno. ",
 	page_name: "somewhere?",
 	date: new Date(NaN),
