@@ -346,10 +346,11 @@ MessageList.draw_block = function(comment, part) {
 	let e = this.block()
 	
 	let author = comment.Author
+	const module = comment.module
 	
 	e.dataset.uid = comment.createUserId
-	/** @type {HTMLImageElement} */	
-	if (comment.module === null) {
+	if (module === null) {
+		/** @type {HTMLImageElement} */	
 		const avatar = this.avatar()
 		e.prepend(avatar)
 		avatar.src = Draw.avatar_url(author)
@@ -382,7 +383,16 @@ MessageList.draw_block = function(comment, part) {
 	let header = e.firstChild.nextSibling
 	
 	let name = header.firstChild
-	if (author.nickname == null) {
+	if (module !== null) {
+		name.firstChild.textContent = module
+		name.firstChild.classList.add('module-name')
+		const module_elem = this.module()
+		const module_avatar = module_elem.lastChild.firstElementChild
+		const module_user = module_elem.lastChild.lastElementChild
+		module_avatar.src = Draw.avatar_url(author)
+		module_user.textContent = author.username
+		name.appendChild(module_elem)
+	} else if (author.nickname == null) {
 		name.firstChild.textContent = author.username
 	} else {
 		name.firstChild.textContent = author.nickname
@@ -414,6 +424,7 @@ MessageList.draw_block = function(comment, part) {
 </message-block>`,
 	nickname: 𐀶` <i>(<span class='pre'></span>)</i>`,
 	bridge: 𐀶` <i>[discord bridge]</i>`,
+	module: 𐀶` <i><img class='avatar module-avatar' width=50 height=50> <span class='pre'></span></i>`,
 	avatar: 𐀶`<img class='avatar' width=50 height=50 alt="----">`,
 	module_name: 𐀶`<span class='module-name'></span>`,
 })
