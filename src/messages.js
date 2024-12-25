@@ -66,6 +66,10 @@ class MessageList {
 		e.dataset.id = msg.id
 		if (msg.edited)
 			e.className += " edited"
+		if (msg.module !== null && msg.uidsInText.length > 0)
+			msg.LinkedUsers.forEach(user => {
+				msg.text = msg.text.replace(new RegExp(`%${user.id}%`, "g"), user.username)
+			})
 		Markup.convert_lang(msg.text, msg.values.m, e, {intersection_observer: View.observer})
 		return e
 	}

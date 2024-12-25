@@ -110,6 +110,10 @@ for (let name in ABOUT.details.types) {
 			value: Object.freeze(Object.create(Author.prototype)),
 			writable: true,
 		}
+		proto_desc.LinkedUsers = {
+			value: Object.freeze([]),
+			writable: true,
+		}
 	}
 	if (name == 'watch') {
 		// FIXME: this could possibly happen before it's defined
@@ -249,12 +253,10 @@ const Entity = NAMESPACE({
 	
 	// link user data with comments
 	link_comments({message, user, content}) {
-		if (content)
-			for (let m of message)
-				m.Author = new Author(m, user[~m.createUserId], content[~m.contentId])
-		else
-			for (let m of message)
-				m.Author = new Author(m, user[~m.createUserId])
+		for (let m of message) {
+			m.Author = new Author(m, user[~m.createUserId], content?.[~m.contentId])
+			m.LinkedUsers = m.uidsInText ? m.uidsInText.map(uid => user[~uid] ?? undefined).filter(v => v !== undefined) : []
+		}
 	},
 	
 	fake_category(id) {
