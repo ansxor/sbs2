@@ -96,7 +96,7 @@ class ApiRequest extends XMLHttpRequest {
 			
 			switch (this.status) {
 			// === Success ===
-			case 200:
+			case 200: case 204:
 				if (this.proc)
 					resp = this.proc(resp)
 				return this.ok(resp)
@@ -110,7 +110,7 @@ class ApiRequest extends XMLHttpRequest {
 				// todo: maybe have some way to trigger a retry here?
 			case 502:
 				return this.retry(5000, 'bad gateway')
-			case 408: case 204: case 524:
+			case 408: case 524:
 				return this.retry(0, 'timeout')
 			case 429: {
 				let after = +(this.getResponseHeader('Retry-After') || 1)
@@ -249,6 +249,10 @@ const Req = { // this stuff can all be static methods on ApiRequest maybe?
 	// messages
 	send_message(message) {
 		return this.request('Write/message', null, message)
+	},
+
+	send_module_message(name, pid, content) {
+		return this.request(`Module/${name}/${pid}`, null, content)
 	},
 	
 	upload_file(file, params) {
