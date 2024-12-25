@@ -320,18 +320,18 @@ class PageView extends BaseView {
 							return
 						}
 						// let's build up a list of commands to present
-						let outputMessage = ""
+						let outputMessage = "⚙️ Commands Available:\n"
 						resp.forEach(command => {
-							outputMessage += `>>>>> ${command.name}:\n`
 							Object.entries(command.subcommands).forEach(([subname, subcommand]) => {
-								outputMessage += `  >> ${command.name}  `
+								outputMessage += `/${command.name} `
 								if (subname) {
 									outputMessage += subname + " "
 								}
-								outputMessage += subcommand.arguments.map(argument => `<${argument.name}>`).join(" ") + "\n"
+								outputMessage += subcommand.arguments.map(argument => `<${argument.name}>`).join(" ")
 								if (subcommand['description']) {
-									outputMessage += subcommand.description + "\n"
+									outputMessage += " - " + subcommand.description
 								}
+								outputMessage += "\n"
 							})
 						})
 						Sidebar.print(outputMessage)
