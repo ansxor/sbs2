@@ -349,29 +349,37 @@ MessageList.draw_block = function(comment, part) {
 	
 	e.dataset.uid = comment.createUserId
 	/** @type {HTMLImageElement} */	
-	let avatar = e.firstChild
-	avatar.src = Draw.avatar_url(author)
+	if (comment.module === null) {
+		const avatar = this.avatar()
+		e.prepend(avatar)
+		avatar.src = Draw.avatar_url(author)
 	
-	if (author.bigAvatar) {
-		avatar.className = "bigAvatar"
-		// for now we don't support both
-	} else {
-		if (author.avatar_pixel) {
-			avatar.classList.add("apx")
-			if (Settings.values.pixel_art=='on') {
-				// TODO: what if setting is turned off while image is loading?
-				if (avatar.naturalWidth) {
-					recalc_image_scale(avatar)
-				} else {
-					avatar.decode().then(ok=>{
+		if (author.bigAvatar) {
+			avatar.className = "bigAvatar"
+			// for now we don't support both
+		} else {
+			if (author.avatar_pixel) {
+				avatar.classList.add("apx")
+				if (Settings.values.pixel_art=='on') {
+					// TODO: what if setting is turned off while image is loading?
+					if (avatar.naturalWidth) {
 						recalc_image_scale(avatar)
-					})
+					} else {
+						avatar.decode().then(ok=>{
+							recalc_image_scale(avatar)
+						})
+					}
 				}
 			}
 		}
+	} else {
+		e.classList.add("module")
+		const module_name = this.module_name()
+		module_name.textContent = comment.module
+		e.prepend(module_name)
 	}
 	
-	let header = avatar.nextSibling
+	let header = e.firstChild.nextSibling
 	
 	let name = header.firstChild
 	if (author.nickname == null) {
@@ -398,7 +406,6 @@ MessageList.draw_block = function(comment, part) {
 }.bind({
 	block: 𐀶`
 <message-block>
-	<img class='avatar' width=50 height=50 alt="----">
 	<message-header>
 		<span><b class='pre'></b>:</span>
 		<span role=time></span>
@@ -407,6 +414,8 @@ MessageList.draw_block = function(comment, part) {
 </message-block>`,
 	nickname: 𐀶` <i>(<span class='pre'></span>)</i>`,
 	bridge: 𐀶` <i>[discord bridge]</i>`,
+	avatar: 𐀶`<img class='avatar' width=50 height=50 alt="----">`,
+	module_name: 𐀶`<span class='module-name'></span>`,
 })
 
 MessageList.init()

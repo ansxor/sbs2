@@ -624,6 +624,10 @@ message-block {
 	padding-bottom: 1px;
 }
 
+message-block.module {
+	color: var(--chat-dim-color);
+}
+
 message-block > img {
 	position: absolute;
 	z-index: -1;
@@ -635,6 +639,19 @@ message-block > img.avatar {
 	margin-top: var(--chat-message-gap);
 	/*background-color: #AAB*/
 	border: 1px solid #777;
+}
+message-block > span.module-name {
+	position: absolute;
+	z-index: -1;
+	width: var(--chat-avatar-size);
+	height: var(--chat-avatar-size);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-left: 0.5rem;
+	margin-top: var(--chat-message-gap);
+	font-style: italic;
+	font-weight: bold;
 }
 message-block > .avatar.pixelAvatar {
 	box-sizing: content-box;
