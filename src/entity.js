@@ -62,7 +62,7 @@ Object.assign(Author.prototype, {
 	bridge: false,
 	bigAvatar: null,
 	avatar_pixel: false,
-	merge_hash: "0,0,0,0,,missingno. ,",
+	merge_hash: "0,0,0,0,,missingno. ",
 	page_name: "somewhere?",
 	date: new Date(NaN),
 	//			content_name: "", todo, store page title, for listing in sidebar?
@@ -255,7 +255,7 @@ const Entity = NAMESPACE({
 	link_comments({message, user, content}) {
 		for (let m of message) {
 			m.Author = new Author(m, user[~m.createUserId], content?.[~m.contentId])
-			m.LinkedUsers = m.uidsInText ? m.uidsInText.map(uid => user[~uid] ?? undefined).filter(v => v !== undefined) : []
+			m.LinkedUsers = m.uidsInText.map(uid => user[~uid]).filter(v => v)
 		}
 	},
 	
