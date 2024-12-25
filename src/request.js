@@ -254,6 +254,10 @@ const Req = { // this stuff can all be static methods on ApiRequest maybe?
 	send_module_message(name, pid, content) {
 		return this.request(`Module/${name}/${pid}`, null, content)
 	},
+
+	search_modules() {
+		return new ApiRequest(`Module/search`, 'GET', null, null)
+	},
 	
 	upload_file(file, params) {
 		let form = new FormData()

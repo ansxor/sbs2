@@ -313,9 +313,34 @@ class PageView extends BaseView {
 			// it would be unexpected if this happened while it was editing
 
 			if (!this.editing && commandCheck) {
-				Req.send_module_message(commandCheck[1], data.contentId, commandCheck[2]).do = (resp, err) => {
-					if (err)
-						alert("Posting module failed")
+				if (commandCheck[1] === 'help') {
+					Req.search_modules().do = (resp, err) => {
+						if (err) {
+							alert("Searching for modules failed")
+							return
+						}
+						// let's build up a list of commands to present
+						let outputMessage = ""
+						resp.forEach(command => {
+							outputMessage += `>>>>> ${command.name}:\n`
+							Object.entries(command.subcommands).forEach(([subname, subcommand]) => {
+								outputMessage += `  >> ${command.name}  `
+								if (subname) {
+									outputMessage += subname + " "
+								}
+								outputMessage += subcommand.arguments.map(argument => `<${argument.name}>`).join(" ") + "\n"
+								if (subcommand['description']) {
+									outputMessage += subcommand.description + "\n"
+								}
+							})
+						})
+						Sidebar.print(outputMessage)
+					}
+				} else {
+					Req.send_module_message(commandCheck[1], data.contentId, commandCheck[2]).do = (resp, err) => {
+						if (err)
+							alert("Posting module failed")
+					}
 				}
 			} else {
 				Req.send_message(data).do = (resp, err)=>{
