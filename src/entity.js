@@ -46,7 +46,7 @@ class Author {
 		this.nickname = valid(n) ? Author.filter_nickname(n) : null
 		this.bigAvatar = valid(big) ? String(big) : null
 		this.avatar_pixel = apx ?? false
-		this.merge_hash = `${message.contentId},${message.createUserId},${this.avatar},${this.bigAvatar||""},${this.avatar_pixel||""},${this.username} ${this.nickname||""}`
+		this.merge_hash = `${message.module||""},${message.contentId},${message.createUserId},${this.avatar},${this.bigAvatar||""},${this.avatar_pixel||""},${this.username} ${this.nickname||""}`
 		this.date = new Date(message.createDate)
 		if (content)
 			this.page_name = content.name2
@@ -62,7 +62,7 @@ Object.assign(Author.prototype, {
 	bridge: false,
 	bigAvatar: null,
 	avatar_pixel: false,
-	merge_hash: "0,0,0,,missingno. ",
+	merge_hash: "0,0,0,0,,missingno. ",
 	page_name: "somewhere?",
 	date: new Date(NaN),
 	//			content_name: "", todo, store page title, for listing in sidebar?
@@ -108,6 +108,10 @@ for (let name in ABOUT.details.types) {
 	if (name == 'message') {
 		proto_desc.Author = {
 			value: Object.freeze(Object.create(Author.prototype)),
+			writable: true,
+		}
+		proto_desc.LinkedUsers = {
+			value: Object.freeze([]),
 			writable: true,
 		}
 	}
@@ -249,12 +253,10 @@ const Entity = NAMESPACE({
 	
 	// link user data with comments
 	link_comments({message, user, content}) {
-		if (content)
-			for (let m of message)
-				m.Author = new Author(m, user[~m.createUserId], content[~m.contentId])
-		else
-			for (let m of message)
-				m.Author = new Author(m, user[~m.createUserId])
+		for (let m of message) {
+			m.Author = new Author(m, user[~m.createUserId], content?.[~m.contentId])
+			m.LinkedUsers = m.uidsInText.map(uid => user[~uid]).filter(v => v)
+		}
 	},
 	
 	fake_category(id) {

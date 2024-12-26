@@ -624,6 +624,10 @@ message-block {
 	padding-bottom: 1px;
 }
 
+message-block.module {
+	color: var(--chat-dim-color);
+}
+
 message-block > img {
 	position: absolute;
 	z-index: -1;
@@ -635,6 +639,29 @@ message-block > img.avatar {
 	margin-top: var(--chat-message-gap);
 	/*background-color: #AAB*/
 	border: 1px solid #777;
+}
+message-block img.module-avatar {
+	width: 1em;
+	height: 1em;
+	margin: 0;
+	margin-top: 0.2em;
+	margin-left: 0.5em;
+	border: 1px solid #777;
+}
+message-block .module-name {
+	font-style: italic;
+	font-weight: bold;
+}
+message-block > span.module-name {
+	position: absolute;
+	z-index: -1;
+	width: var(--chat-avatar-size);
+	height: var(--chat-avatar-size);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-left: 0.5rem;
+	margin-top: var(--chat-message-gap);
 }
 message-block > .avatar.pixelAvatar {
 	box-sizing: content-box;
@@ -655,6 +682,9 @@ message-header {
 	padding-top: var(--chat-message-gap);
 	margin-bottom: 1px;
 	line-height: 1.2;
+}
+message-block.module message-header {
+	margin-left: 0.5rem;
 }
 message-header > [role="time"] {
 	margin-left: auto; /* expanding margin, pushes element to the right */
@@ -689,6 +719,15 @@ message-part {
 	-webkit-background-clip: padding-box !important;
 	background-clip: padding-box !important;
 }
+message-block.module > div > message-part {
+	color: var(--chat-dim-color);
+	font-weight: bold;
+	border-left: 0.25rem solid var(--chat-dim-color);
+	margin-left: 0.5rem;
+
+	padding-left: 0.5rem;
+}
+
 message-part.edited {
 	box-shadow: 10px 0 5px -10px inset var(--T-edit-color);
 }

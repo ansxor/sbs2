@@ -309,9 +309,44 @@ class PageView extends BaseView {
 			}
 		} else { // non-empty
 			// create/edit message
-			Req.send_message(data).do = (resp, err)=>{
-				if (err)
-					alert("Posting failed")
+			const commandCheck = data.text.match(/^\/([^\s]+)\s*(.*)$/);
+			// it would be unexpected if this happened while it was editing
+
+			if (!this.editing && commandCheck) {
+				if (commandCheck[1] === 'help') {
+					Req.search_modules().do = (resp, err) => {
+						if (err) {
+							alert("Searching for modules failed")
+							return
+						}
+						// let's build up a list of commands to present
+						let outputMessage = "⚙️ Commands Available:\n"
+						resp.forEach(command => {
+							Object.entries(command.subcommands).forEach(([subname, subcommand]) => {
+								outputMessage += `/${command.name} `
+								if (subname) {
+									outputMessage += subname + " "
+								}
+								outputMessage += subcommand.arguments.map(argument => `<${argument.name}>`).join(" ")
+								if (subcommand['description']) {
+									outputMessage += " - " + subcommand.description
+								}
+								outputMessage += "\n"
+							})
+						})
+						Sidebar.print(outputMessage)
+					}
+				} else {
+					Req.send_module_message(commandCheck[1], data.contentId, commandCheck[2]).do = (resp, err) => {
+						if (err)
+							alert("Posting module failed")
+					}
+				}
+			} else {
+				Req.send_message(data).do = (resp, err)=>{
+					if (err)
+						alert("Posting failed")
+				}
 			}
 		}
 		// reset input

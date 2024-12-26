@@ -66,6 +66,10 @@ class MessageList {
 		e.dataset.id = msg.id
 		if (msg.edited)
 			e.className += " edited"
+		if (msg.module !== null && msg.uidsInText.length > 0)
+			msg.LinkedUsers.forEach(user => {
+				msg.text = msg.text.replace(new RegExp(`%${user.id}%`, "g"), user.username)
+			})
 		Markup.convert_lang(msg.text, msg.values.m, e, {intersection_observer: View.observer})
 		return e
 	}
@@ -342,35 +346,53 @@ MessageList.draw_block = function(comment, part) {
 	let e = this.block()
 	
 	let author = comment.Author
+	const module = comment.module
 	
 	e.dataset.uid = comment.createUserId
-	/** @type {HTMLImageElement} */	
-	let avatar = e.firstChild
-	avatar.src = Draw.avatar_url(author)
+	if (module === null) {
+		/** @type {HTMLImageElement} */	
+		const avatar = this.avatar()
+		e.prepend(avatar)
+		avatar.src = Draw.avatar_url(author)
 	
-	if (author.bigAvatar) {
-		avatar.className = "bigAvatar"
-		// for now we don't support both
-	} else {
-		if (author.avatar_pixel) {
-			avatar.classList.add("apx")
-			if (Settings.values.pixel_art=='on') {
-				// TODO: what if setting is turned off while image is loading?
-				if (avatar.naturalWidth) {
-					recalc_image_scale(avatar)
-				} else {
-					avatar.decode().then(ok=>{
+		if (author.bigAvatar) {
+			avatar.className = "bigAvatar"
+			// for now we don't support both
+		} else {
+			if (author.avatar_pixel) {
+				avatar.classList.add("apx")
+				if (Settings.values.pixel_art=='on') {
+					// TODO: what if setting is turned off while image is loading?
+					if (avatar.naturalWidth) {
 						recalc_image_scale(avatar)
-					})
+					} else {
+						avatar.decode().then(ok=>{
+							recalc_image_scale(avatar)
+						})
+					}
 				}
 			}
 		}
+	} else {
+		e.classList.add("module")
+		const module_name = this.module_name()
+		module_name.textContent = comment.module
+		e.prepend(module_name)
 	}
 	
-	let header = avatar.nextSibling
+	let header = e.firstChild.nextSibling
 	
 	let name = header.firstChild
-	if (author.nickname == null) {
+	if (module !== null) {
+		name.firstChild.textContent = module
+		name.firstChild.classList.add('module-name')
+		const module_elem = this.module()
+		const module_avatar = module_elem.lastChild.firstElementChild
+		const module_user = module_elem.lastChild.lastElementChild
+		module_avatar.src = Draw.avatar_url(author)
+		module_user.textContent = author.username
+		name.appendChild(module_elem)
+	} else if (author.nickname == null) {
 		name.firstChild.textContent = author.username
 	} else {
 		name.firstChild.textContent = author.nickname
@@ -394,7 +416,6 @@ MessageList.draw_block = function(comment, part) {
 }.bind({
 	block: 𐀶`
 <message-block>
-	<img class='avatar' width=50 height=50 alt="----">
 	<message-header>
 		<span><b class='pre'></b>:</span>
 		<span role=time></span>
@@ -403,6 +424,9 @@ MessageList.draw_block = function(comment, part) {
 </message-block>`,
 	nickname: 𐀶` <i>(<span class='pre'></span>)</i>`,
 	bridge: 𐀶` <i>[discord bridge]</i>`,
+	module: 𐀶` <i><img class='avatar module-avatar' width=50 height=50> <span class='pre'></span></i>`,
+	avatar: 𐀶`<img class='avatar' width=50 height=50 alt="----">`,
+	module_name: 𐀶`<span class='module-name'></span>`,
 })
 
 MessageList.init()
