@@ -105,9 +105,9 @@ class PageView extends BaseView {
 		if (!OPTS.has('dev')) {
 			const domain = Req.server.split("/")[0]
 			let href = undefined
-			if (Object.hasOwn(page.values, "share") && page.values.share) {
+			if (page.values.share) {
 				href = `https://${domain}/share/${page.hash}`;
-			} else if (parent && Object.hasOwn(parent.values, "share") && parent.values.share && parent.literalType==="resource") {
+			} else if (parent?.values.share && parent?.literalType==="resource") {
 				href = `https://${domain}/share/${parent.hash}/${page.hash}`;
 			}
 			if (href) {
