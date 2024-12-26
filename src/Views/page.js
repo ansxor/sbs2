@@ -325,11 +325,12 @@ class PageView extends BaseView {
 			}
 		} else { // non-empty
 			// create/edit message
-			const commandCheck = data.text.match(/^\/([^\s]+)\s*(.*)$/);
+			let match = /^[/][/](\w+) ?/.exec(data.text)
 			// it would be unexpected if this happened while it was editing
-
-			if (!this.editing && commandCheck) {
-				if (commandCheck[1] === 'help') {
+			if (!this.editing && match) {
+				let [full, command] = match
+				let args = data.text.slice(full.length)
+				if (command == 'help') {
 					Req.search_modules().do = (resp, err) => {
 						if (err) {
 							alert("Searching for modules failed")
@@ -353,9 +354,9 @@ class PageView extends BaseView {
 						Sidebar.print(outputMessage)
 					}
 				} else {
-					Req.send_module_message(commandCheck[1], data.contentId, commandCheck[2]).do = (resp, err) => {
+					Req.send_module_message(command, data.contentId, args).do = (resp, err) => {
 						if (err)
-							alert("Posting module failed")
+							print("Posting module failed")
 					}
 				}
 			} else {
