@@ -21,6 +21,7 @@ class PageView extends BaseView {
 				},
 				requests: [
 					{type: 'content', fields: "*", query: `${field} = @key`},
+					{name: 'Pcontent', type: 'content', fields: "*", query: `id = @content.parentId`},
 					{type: 'message', fields: "*", query: "contentId IN @content.id AND !notdeleted()", order: 'id_desc', limit: 30},
 					{name: 'Mpinned', type: 'message', fields: "*", query: "id IN @content.values.pinned"},
 					{type: 'user', fields: "*", query: "id IN @content.createUserId OR id IN @message.createUserId OR id IN @message.editUserId OR id IN @Mpinned.createUserId OR id IN @Mpinned.editUserId"},
@@ -90,7 +91,7 @@ class PageView extends BaseView {
 			}
 		})
 	}
-	Render({message, content:[page], Mpinned:pinned, user, watch}) {
+	Render({message, content:[page], Mpinned:pinned, user, watch, Pcontent:[parent]}) {
 		this.page_id = page.id
 		
 		// header //
@@ -100,6 +101,21 @@ class PageView extends BaseView {
 			{icon:"✏️", label:"edit", href:"#editpage/"+page.id},
 			{icon:"🗂️", label:"childs", href:"#category/"+page.id},
 		])
+
+		if (!OPTS.has('dev')) {
+			const domain = Req.server.split("/")[0]
+			let href = undefined
+			if (page.values.share) {
+				href = `https://${domain}/share/${page.hash}`;
+			} else if (parent?.values.share && parent?.literalType==="resource") {
+				href = `https://${domain}/share/${parent.hash}/${page.hash}`;
+			}
+			if (href) {
+				this.Slot.add_header_links([
+					{icon:"🌐", label:"blog", href, target: "_blank"}
+				])
+			}
+		}
 		
 		// init components //
 		Object.assign(Lp.users, user)
