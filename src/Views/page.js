@@ -112,7 +112,7 @@ class PageView extends BaseView {
 			}
 			if (href) {
 				this.Slot.add_header_links([
-					{icon:"🌐", label:"blog", href}
+					{icon:"🌐", label:"blog", href, target: "_blank"}
 				])
 			}
 		}

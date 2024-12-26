@@ -66,6 +66,7 @@ class ViewSlot {
 		for (let x of items) {
 			let a = document.createElement('a')
 			a.href = x.href
+			a.target = x['target'] ?? '_self'
 			let lb = document.createElement('span')
 			lb.textContent = x.label
 			a.append(lb)
