@@ -1,5 +1,11 @@
 'use strict'
 
+function censorSpoilerText(text) {
+	if ("".startsWith.call(text, "\\h"))
+		text = text.replace(/^\\h(\[.*?\])?[^]*/, "<spoiler $1>")
+	return text
+}
+
 class MessageList {
 	constructor(element, pid, edit) {
 		this.$list = element
@@ -82,7 +88,8 @@ class MessageList {
 				const replyAvatar = replyLink.firstElementChild
 				const replyContent = replyLink.lastElementChild
 				replyAvatar.src = Draw.avatar_url(replyMessage.data.Author)
-				replyContent.textContent = `${replyMessage.data.Author.username}: ${replyMessage.data.text}`
+				const text = censorSpoilerText(replyMessage.data.text)
+				replyContent.textContent = `${replyMessage.data.Author.username}: ${text}`
 			}
 			e.prepend(replyBlock)
 		}
