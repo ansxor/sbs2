@@ -743,6 +743,23 @@ message-part.boundary-bottom {
 	border-bottom: 2px solid red;
 }
 
+reply-block, reply-block > a {
+	display: flex;
+	flex-direction: row;
+	font-size: 0.8em;
+	align-items: center;
+}
+reply-block > a {
+	gap: 0.25em;
+}
+reply-block > a {
+	margin-left: 0.5em;
+}
+reply-block > a > img {
+	width: 1em;
+	height: 1em;
+}
+
 /* message action controls */
 message-controls {
 	display: inline-flex;

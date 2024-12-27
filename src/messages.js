@@ -70,7 +70,22 @@ class MessageList {
 			msg.LinkedUsers.forEach(user => {
 				msg.text = msg.text.replace(new RegExp(`%${user.id}%`, "g"), user.username)
 			})
-		Markup.convert_lang(msg.text, msg.values.m, e, {intersection_observer: View.observer})
+		Markup.convert_lang(msg.text, msg.values.m, e.firstElementChild, {intersection_observer: View.observer})
+		if (msg.values.replyingTo) {
+			const { replyingTo } = msg.values
+			const replyBlock = MessageList.reply_template()
+			const replyLink = replyBlock.lastElementChild
+			replyLink.href = `#comments?ids=${replyingTo}`
+			// find existing message
+			const replyMessage = this.parts.get(+msg.values.replyingTo)
+			if (replyMessage) {
+				const replyAvatar = replyLink.firstElementChild
+				const replyContent = replyLink.lastElementChild
+				replyAvatar.src = Draw.avatar_url(replyMessage.data.Author)
+				replyContent.textContent = `${replyMessage.data.Author.username}: ${replyMessage.data.text}`
+			}
+			e.prepend(replyBlock)
+		}
 		return e
 	}
 	// draw a message and insert it into the linked list
@@ -338,7 +353,15 @@ class MessageList {
 		}
 	}
 }
-MessageList.part_template = 𐀶`<message-part role=listitem>`
+MessageList.part_template = 𐀶`<message-part role=listitem><div></div></message-part>`
+MessageList.reply_template = 𐀶`
+<reply-block>
+⤴️ Reply to:
+<a>
+<img width=16 height=16> <span>Loading...</span>
+</a>
+</reply-block>
+`
 MessageList.controls = null
 MessageList.controls_message = null
 MessageList.prototype.max_parts = 500
