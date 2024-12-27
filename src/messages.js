@@ -67,17 +67,18 @@ class MessageList {
 	// msg: Message being replied to
 	// target: reply block link
 	draw_reply_block(target, msg=undefined) {
+		const content = target.lastElementChild
+		const avatar = target.firstElementChild
+
 		if (!msg) {
-			replyContent.textContent = "Not Available"
+			content.textContent = "Not Available"
 			return
 		}
-		const replyAvatar = target.firstElementChild
-		const replyContent = target.lastElementChild
 
 		target.href = `#comments?ids=${msg.id}`
-		replyAvatar.src = Draw.avatar_url(msg.Author)
+		avatar.src = Draw.avatar_url(msg.Author)
 		const text = censorSpoilerText(msg.text)
-		replyContent.textContent = `${msg.Author.username}: ${text}`
+		content.textContent = `${msg.Author.username}: ${text}`
 	}
 	
 	// draw a message
@@ -336,6 +337,7 @@ class MessageList {
 		}
 		btn('info', "⚙️")
 		btn('edit', "✏️")
+		btn('reply', "⤴️")
 		
 		let listen = (ev, fn)=>{
 			document.addEventListener(ev, fn, {passive: true})
@@ -391,7 +393,7 @@ class MessageList {
 MessageList.part_template = 𐀶`<message-part role=listitem><div></div></message-part>`
 MessageList.reply_template = 𐀶`
 <reply-block>
-⤴️ Reply to:
+⤴️ <b>Reply to</b>
 <a>
 <img width=16 height=16> <span>Loading...</span>
 </a>

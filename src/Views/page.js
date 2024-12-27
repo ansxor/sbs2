@@ -36,6 +36,7 @@ class PageView extends BaseView {
 			this.$textarea.value = View.lost
 		this.editing = null
 		this.pre_edit = null
+		this.replying_to = null
 		
 		function enter_submits() {
 			return !['newline', 'newline, strip trailing'].includes(Settings.values.chat_enter)
@@ -66,6 +67,7 @@ class PageView extends BaseView {
 		
 		this.$send.onclick = e=>{ this.send_message() }
 		this.$cancel.onclick = e=>{ this.edit_comment(null) }
+		this.$cancel_reply.onclick = e=>{ this.reply_to_comment(null) }
 		this.$root.onkeydown = e=>{
 			if ('Escape'==e.key)
 				this.edit_comment(null)
@@ -88,6 +90,10 @@ class PageView extends BaseView {
 			if (e.detail.action=='edit') {
 				e.stopPropagation()
 				this.edit_comment(e.detail.data)
+			}
+			if (e.detail.action=='reply') {
+				e.stopPropagation()
+				this.reply_to_comment(e.detail.data)
 			}
 		})
 	}
@@ -366,6 +372,8 @@ class PageView extends BaseView {
 				}
 			}
 		}
+		if (this.replying_to)
+			this.reply_to_comment(null)
 		// reset input
 		if (this.editing)
 			this.edit_comment(null)
@@ -398,6 +406,8 @@ class PageView extends BaseView {
 			if (sv.avatar_pixel=='on')
 				data.values.apx = true
 			data.values.m = sv.chat_markup
+			if (this.replying_to)
+				data.values.replyingTo = this.replying_to.id
 		}
 		data.text = this.$textarea.value
 		if (['submit, strip trailing', 'newline, strip trailing'].includes(Settings.values.chat_enter) && data.text.endsWith("\n"))
@@ -442,6 +452,21 @@ class PageView extends BaseView {
 			this.$textarea.setSelectionRange(99999, 99999) // move cursor to end
 		})
 	}
+
+	reply_to_comment(comment=null) {
+		if (!comment) {
+			if (this.replying_to) {
+				this.replying_to = null
+				this.Flag('replying', false)
+			}
+			return
+		}
+
+		this.replying_to = comment
+		this.Flag('replying', true)
+		this.$replying_to_avatar.src = Draw.avatar_url(this.replying_to.Author)
+		this.$replying_to_text.textContent = `${this.replying_to.Author.username}: ${this.replying_to.text}`
+	}
 }
 PageView.track_resize_2 = new ResizeTracker('width')
 PageView.template = HTML`
@@ -465,7 +490,16 @@ PageView.template = HTML`
 			<div class='chat-bottom' tabindex=0></div>
 		</scroll-inner>
 	</auto-scroller>
-	<div class='inputPane ROW'>
+   <div>
+   <div class='ROW inputPane replyPane'>
+     <button $=cancel_reply>×</button>
+     <div class='ROW'>
+<div>⤴️ <b>Replying to</b></div>
+       <img $=replying_to_avatar width=16 height=16>
+       <div $=replying_to_text></div>
+     </div>
+   </div>
+	<Div class='inputPane ROW'>
 		<div class='chat-edit-controls COL'>
 			<input $=markup placeholder="markup" style="width:50px;">
 			<button class='FILL' $=cancel>Cancel</button>
@@ -482,6 +516,7 @@ PageView.template = HTML`
 			<button class='FILL' $=send>Send</button>
 		</div>
 	</div>
+   </div>
 </view-root>
 `
 

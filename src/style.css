@@ -743,17 +743,19 @@ message-part.boundary-bottom {
 	border-bottom: 2px solid red;
 }
 
+reply-block {
+	margin-bottom: 0.5em;
+}
 reply-block, reply-block > a {
 	display: flex;
 	flex-direction: row;
-	font-size: 0.8em;
+	font-size: 0.6em;
 	align-items: center;
-}
-reply-block > a {
 	gap: 0.25em;
 }
 reply-block > a {
-	margin-left: 0.5em;
+	gap: 0.25em;
+	font-size: 1em;
 }
 reply-block > a > img {
 	width: 1em;
@@ -762,25 +764,16 @@ reply-block > a > img {
 
 /* message action controls */
 message-controls {
-	display: inline-flex;
+	display: grid;
+	grid-template-columns: 1fr 1fr;
 	position: absolute;
 	width: var(--chat-gutter);
 	z-index: 1;
 	-webkit-user-select: none; -moz-user-select: none; user-select: none;
 }
 /* hack to set the height */
-message-controls::before {
-	content: "a";
-	padding: 2px 0; /* note: same as message-part */
-	width: 0;
-	overflow: hidden;
-	visibility: hidden;
-}
 message-controls > button {
-	flex: 0mm;
-	padding: 0 !important;
-	line-height: 0.5rem !important;
-	overflow: hidden;
+	padding: 2px 0;
 }
 message-controls:hover + message-part {
 	background: var(--message-hover-bg);
@@ -789,6 +782,24 @@ message-controls:hover + message-part {
 /* chat input pane */
 .inputPane {
 	background: var(--bar-bg);
+}
+.replyPane {
+	display: none;
+}
+.f-replying .replyPane {
+	display: flex;
+}
+.replyPane > div {
+   display: flex;
+   flex-direction: row;
+   align-items: center;
+   margin-left: 0.5em;
+   gap: 0.25em;
+	font-size: 0.8em;
+}
+.replyPane > div > img {
+   width: 1em;
+   height: 1em;
 }
 view-root.f-editing .chatTextarea {
 	background: var(--edit-textarea-bg);
