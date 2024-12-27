@@ -63,6 +63,22 @@ class MessageList {
 			}
 		}
 	}
+
+	// msg: Message being replied to
+	// target: reply block link
+	draw_reply_block(target, msg=undefined) {
+		if (!msg) {
+			replyContent.textContent = "Not Available"
+			return
+		}
+		const replyAvatar = target.firstElementChild
+		const replyContent = target.lastElementChild
+
+		target.href = `#comments?ids=${msg.id}`
+		replyAvatar.src = Draw.avatar_url(msg.Author)
+		const text = censorSpoilerText(msg.text)
+		replyContent.textContent = `${msg.Author.username}: ${text}`
+	}
 	
 	// draw a message
 	// msg: Message
@@ -81,15 +97,27 @@ class MessageList {
 			const { replyingTo } = msg.values
 			const replyBlock = MessageList.reply_template()
 			const replyLink = replyBlock.lastElementChild
-			replyLink.href = `#comments?ids=${replyingTo}`
 			// find existing message
 			const replyMessage = this.parts.get(+msg.values.replyingTo)
+
 			if (replyMessage) {
-				const replyAvatar = replyLink.firstElementChild
-				const replyContent = replyLink.lastElementChild
-				replyAvatar.src = Draw.avatar_url(replyMessage.data.Author)
-				const text = censorSpoilerText(replyMessage.data.text)
-				replyContent.textContent = `${replyMessage.data.Author.username}: ${text}`
+				this.draw_reply_block(replyLink, replyMessage.data)
+			} else {
+				// here's to hoping that it captures the element in the closure during a promise...
+				Req.chain({
+					values: {
+						key: replyingTo
+					},
+					requests: [
+						{ type: 'message', fields: '*', query: 'id = @key' },
+						{ type: 'user', fields: '*', query: 'id in @message.createUserId' }
+					]
+				}).do = (resp, err) => {
+					if (err) {
+						this.draw_reply_block(replyLink)
+					}
+					this.draw_reply_block(replyLink, resp.message[~replyingTo])
+				}
 			}
 			e.prepend(replyBlock)
 		}
