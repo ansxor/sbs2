@@ -188,9 +188,9 @@ let Act = {
 				{name:'Mwatch', type:'message', fields: '*', query: 'id in @Cwatch.lastCommentId', order: 'id_desc'},
 				// shared
 				{type:'user', fields:'*', query:"id IN @message_aggregate.createUserId OR id IN @message.createUserId OR id IN @watch.userId OR id IN @activity.userId"},
-				{type:'content', fields:'name,id,permissions,contentType,lastRevisionId,hash,literalType', query:"id IN @message_aggregate.contentId OR id IN @message.contentId OR id IN @activity.contentId"},
+				{type:'content', fields:'name,id,permissions,contentType,lastRevisionId,hash,literalType,values', query:"id IN @message_aggregate.contentId OR id IN @message.contentId OR id IN @activity.contentId"},
 				// category
-				{name:'Ccat', type:'content', fields:'name,id,permissions,contentType,literalType,parentId,hash', query:"!onlyparents() OR literalType={{category}}"},
+				{name:'Ccat', type:'content', fields:'name,id,permissions,contentType,literalType,parentId,hash,values', query:"!onlyparents() OR literalType={{category}}"},
 			],
 		}, (objects)=>{
 			console.log('🌄 got initial activity')

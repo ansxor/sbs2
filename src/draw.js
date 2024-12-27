@@ -13,7 +13,9 @@ const Draw = NAMESPACE({
 	content_label: function(content, isCategory) {
 		// choose icon
 		let bg
-		if (content.contentType==CODES.InternalContentType.file)
+		if (content.values.thumbnail) {
+			bg = "url("+Req.image_url(content.values.thumbnail, AVATAR_SIZE, true)+")"
+		} else if (content.contentType==CODES.InternalContentType.file)
 			bg = "url("+Req.image_url(content.hash, AVATAR_SIZE, true)+")"
 		else if (content.contentType==CODES.InternalContentType.userpage)
 			bg = 'url(resource/page-userpage.png)'

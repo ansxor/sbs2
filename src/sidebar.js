@@ -62,7 +62,7 @@ const Sidebar = NAMESPACE({
 					pagetype: [1, 4],
 				},
 				requests: [
-					{type:'content', fields:'name,id,contentType,permissions,createUserId,lastCommentId', query:"contentType in @pagetype AND name LIKE @search", limit:50, order:'lastCommentId_desc'},
+					{type:'content', fields:'name,id,contentType,permissions,createUserId,lastCommentId,values', query:"contentType in @pagetype AND name LIKE @search", limit:50, order:'lastCommentId_desc'},
 				],
 			}, resp=>{
 				done()
