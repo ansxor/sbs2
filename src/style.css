@@ -782,7 +782,7 @@ message-controls {
 message-controls > button {
 	padding: 2px 0;
 }
-message-controls:hover + message-part {
+message-controls:hover + message-part > div.Markup, message-controls:hover + message-part {
 	background: var(--message-hover-bg);
 }
 
