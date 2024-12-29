@@ -98,7 +98,7 @@ class PageView extends BaseView {
 			}
 		})
 	}
-	Render({message, content:[page], Mpinned:pinned, Mreplies:replies, user, watch, Pcontent:[parent]}) {
+	Render({message, content:[page], Mpinned:pinned, user, watch, Pcontent:[parent]}) {
 		this.page_id = page.id
 		
 		// header //
