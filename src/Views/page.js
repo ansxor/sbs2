@@ -407,9 +407,11 @@ class PageView extends BaseView {
 			if (sv.avatar_pixel=='on')
 				data.values.apx = true
 			data.values.m = sv.chat_markup
-			if (this.replying_to)
-				data.values.replyingTo = this.replying_to.id
 		}
+		if (this.replying_to)
+			data.values.replyingTo = this.replying_to.id
+		else
+			delete data.values.replyingTo
 		data.text = this.$textarea.value
 		if (['submit, strip trailing', 'newline, strip trailing'].includes(Settings.values.chat_enter) && data.text.endsWith("\n"))
 			data.text = data.text.slice(0, -1)
