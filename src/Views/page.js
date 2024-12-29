@@ -23,8 +23,9 @@ class PageView extends BaseView {
 					{type: 'content', fields: "*", query: `${field} = @key`},
 					{name: 'Pcontent', type: 'content', fields: "*", query: `id = @content.parentId`},
 					{type: 'message', fields: "*", query: "contentId IN @content.id AND !notdeleted()", order: 'id_desc', limit: 30},
+					{name: 'replies', type: 'message', fields: '*', query: "id in @message.values.replyingTo AND id NOT IN @message.id"},
 					{name: 'Mpinned', type: 'message', fields: "*", query: "id IN @content.values.pinned"},
-					{type: 'user', fields: "*", query: "id IN @content.createUserId OR id IN @message.createUserId OR id IN @message.editUserId OR id IN @Mpinned.createUserId OR id IN @Mpinned.editUserId"},
+					{type: 'user', fields: "*", query: "id IN @content.createUserId OR id IN @message.createUserId OR id IN @message.editUserId OR id IN @Mpinned.createUserId OR id IN @Mpinned.editUserId OR id IN @replies.createUserId"},
 					{type: 'watch', fields: "*", query: "contentId IN @content.id"}
 				],
 			},
@@ -97,7 +98,7 @@ class PageView extends BaseView {
 			}
 		})
 	}
-	Render({message, content:[page], Mpinned:pinned, user, watch, Pcontent:[parent]}) {
+	Render({message, content:[page], Mpinned:pinned, Mreplies:replies, user, watch, Pcontent:[parent]}) {
 		this.page_id = page.id
 		
 		// header //

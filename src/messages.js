@@ -76,7 +76,7 @@ class MessageList {
 			// here's to hoping that it captures the element in the closure during a promise...
 			Req.chain({
 				values: {
-					key: replyingTo
+					key: id
 				},
 				requests: [
 					{ type: 'message', fields: '*', query: 'id = @key' },
@@ -125,13 +125,18 @@ class MessageList {
 			const { replyingTo } = msg.values
 			const replyBlock = MessageList.reply_template()
 			const replyLink = replyBlock.lastElementChild
-			// find existing message
-			this.get_reply_message(replyingTo).then((resp) => {
-				this.draw_reply_block(replyLink, resp)
-			}).catch((err) => {
-				console.error(err)
-				this.draw_reply_block(replyLink)
-			})
+			// reply is already chained and linked
+			if (msg.Author.reply) {
+				this.draw_reply_block(replyLink, msg.Author.reply)
+			} else {
+				// find existing message
+				this.get_reply_message(replyingTo).then((resp) => {
+					this.draw_reply_block(replyLink, resp)
+				}).catch((err) => {
+					console.error(err)
+					this.draw_reply_block(replyLink)
+				})				
+			}
 			e.prepend(replyBlock)
 		}
 		return e
