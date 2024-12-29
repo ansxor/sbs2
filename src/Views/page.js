@@ -37,6 +37,7 @@ class PageView extends BaseView {
 			this.$textarea.value = View.lost
 		this.editing = null
 		this.pre_edit = null
+		this.pre_edit_replying_to = null
 		this.replying_to = null
 		
 		function enter_submits() {
@@ -439,12 +440,16 @@ class PageView extends BaseView {
 				this.editing = null
 				this.write_input(this.pre_edit)
 				this.Flag('editing', false)
+				if (this.replying_to)
+					this.reply_to_comment(this.pre_edit_replying_to)
 			}
 			return
 		}
 		// todo: maybe this should be a stack? and then if you edit another post while already in edit mode... sometHing ..
-		if (!this.editing)
+		if (!this.editing) {
 			this.pre_edit = this.read_input()
+			this.pre_edit_replying_to = this.replying_to
+		}
 		this.editing = comment
 		if (comment.values.replyingTo) {
 			this.list.get_reply_message(comment.values.replyingTo).then((msg) => {
