@@ -609,6 +609,7 @@ I need the <message-part>s to extend into the gutter, so that i can detect which
 (I also can't use left margin on <message-block>, since mouse events only apply within the border-box)
 */
 message-block {
+	contain: initial;
 	display: block;
 	box-sizing: content-box;
 	font-size: 1em; /* ? */
@@ -620,7 +621,6 @@ message-block {
 	padding-right: 0.5rem;
 	min-height: calc(var(--chat-avatar-size) + var(--chat-message-gap));
 	position: relative;
-	z-index: 0;
 	padding-bottom: 1px;
 }
 
@@ -701,8 +701,8 @@ message-header i {
 	font-style: normal;
 }
 message-block > :last-child {
+	contain: initial;
 	display: block;
-	overflow: hidden; /* do we need this */
 }
 /* message parts */
 message-part {
@@ -767,8 +767,9 @@ message-controls {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	position: absolute;
+	/*transform: translateY(-1rem);*/
 	width: var(--chat-gutter);
-	z-index: 1;
+	z-index: 20;
 	-webkit-user-select: none; -moz-user-select: none; user-select: none;
 }
 /* hack to set the height */
