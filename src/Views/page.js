@@ -443,6 +443,11 @@ class PageView extends BaseView {
 		if (!this.editing)
 			this.pre_edit = this.read_input()
 		this.editing = comment
+		if (comment.values.replyingTo) {
+			this.list.get_reply_message(comment.values.replyingTo).then((msg) => {
+				this.reply_to_comment(msg)
+			})
+		}
 		this.Flag('editing', true)
 		// do this after the flag, so the width is right
 		this.write_input(comment) 

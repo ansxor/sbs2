@@ -64,6 +64,33 @@ class MessageList {
 		}
 	}
 
+	get_reply_message(id) {
+		return new Promise((resolve, reject) => {
+			const replyMessage = this.parts.get(id)
+
+			if (replyMessage) {
+				resolve(replyMessage.data)
+				return
+			}
+
+			// here's to hoping that it captures the element in the closure during a promise...
+			Req.chain({
+				values: {
+					key: replyingTo
+				},
+				requests: [
+					{ type: 'message', fields: '*', query: 'id = @key' },
+					{ type: 'user', fields: '*', query: 'id in @message.createUserId' }
+				]
+			}).do = (resp, err) => {
+				if (err) {
+					reject(err)
+				}
+				resolve(resp.message[~id])
+			}
+		})
+	}
+
 	// msg: Message being replied to
 	// target: reply block link
 	draw_reply_block(target, msg=undefined) {
@@ -99,27 +126,12 @@ class MessageList {
 			const replyBlock = MessageList.reply_template()
 			const replyLink = replyBlock.lastElementChild
 			// find existing message
-			const replyMessage = this.parts.get(+msg.values.replyingTo)
-
-			if (replyMessage) {
-				this.draw_reply_block(replyLink, replyMessage.data)
-			} else {
-				// here's to hoping that it captures the element in the closure during a promise...
-				Req.chain({
-					values: {
-						key: replyingTo
-					},
-					requests: [
-						{ type: 'message', fields: '*', query: 'id = @key' },
-						{ type: 'user', fields: '*', query: 'id in @message.createUserId' }
-					]
-				}).do = (resp, err) => {
-					if (err) {
-						this.draw_reply_block(replyLink)
-					}
-					this.draw_reply_block(replyLink, resp.message[~replyingTo])
-				}
-			}
+			this.get_reply_message(replyingTo).then((resp) => {
+				this.draw_reply_block(replyLink, resp)
+			}).catch((err) => {
+				console.error(err)
+				this.draw_reply_block(replyLink)
+			})
 			e.prepend(replyBlock)
 		}
 		return e
