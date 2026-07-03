@@ -1,0 +1,1251 @@
+@charset "utf-8";
+
+/* general */
+
+html {
+	background: #FEE; /* (for debug) */
+	color: var(--T-color);
+	font: var(--T-font);
+	line-height: normal;
+	/* alternate glyphs for K and k (whatever) */
+	/* font-feature-settings: "ss04" on; /* no! bad! */
+}
+
+body {
+	background: var(--T-bg);
+}
+
+/* logged in/out display */
+:root:not([data-login]) .loggedIn,
+:root[data-login] .loggedOut {
+	display: none !important;
+}
+
+/* inputs and focus */
+/* these elements's sizes are fucking weird and make no sense */
+/*input:not([type]) {
+	width: 12em;
+}
+input[type="number"] {
+	width: 8em;
+}*/
+input[type="checkbox"] {
+	max-width: 8em;
+	/*max-width: 1rem;*/
+	/* todo: style this to match the other input fields */
+	align-self: center;
+	width: 1rem;
+	height: 1rem;
+}
+input, output, select, textarea, textarea-container {
+	font: inherit;
+	font-size: 0.875em;
+	background-color: var(--T-bg);
+	border: 2px solid var(--T-textarea-border-color);
+	border-radius: 1px;
+}
+output::after {
+	content: "";
+}
+input, output, select {
+	padding: 2px;
+}
+output {
+	border-color: gray;
+}
+input, select { /* do we need this? */
+	min-width: 0;
+	max-width: 100%;
+}
+input, select, button, input::placeholder {
+	color: var(--T-color);
+}
+select {
+	border-left-width: 4px;
+	border-bottom-left-radius: 3px;
+	border-top-left-radius: 3px;
+}
+input[type="file"] {
+	line-height: calc(var(--bar-height, 1.5625rem) - 4px);
+	padding: 0;
+}
+input::file-selector-button {
+	vertical-align: top;
+	height: 100%;
+	line-height: 1;
+}
+input::placeholder {
+	font-style: italic;
+	color: #80808099;
+	padding-left: 0.3125rem;
+}
+input:invalid {
+	background: var(--error-bg);
+}
+input:disabled {
+	background: var(--bar-bg);
+	color: var(--chat-dim-color);
+	border-color: gray;
+}
+
+password-input {
+	display: inline-flex !important; /*not a hack*/
+	align-items: center;
+	max-width: 100%;
+}
+password-input > span { /* this span doesn't exist anymore and i can't remember what this was supposed to do */
+	display: flex;
+	flex-flow: column;
+}
+password-input > span > :first-child {
+	margin-bottom: 2px;
+}
+password-input > label {
+	margin-left: 3px;
+}
+
+
+/* textarea */
+textarea {
+	max-width: 100%;
+	border: 2px solid var(--T-textarea-border-color);
+	border-radius: 0;
+	box-shadow: none;
+	color: var(--T-color);
+	background-color: var(--T-bg);
+	white-space: break-spaces; /* optional */
+	tab-size: 3; -moz-tab-size: 3;
+}
+.code-textarea {
+	line-break: anywhere;
+	white-space: break-spaces !important;
+	/*font: var(--T-monospace-font);*/
+	line-height: 14px;
+	font: 12px monospace, monospace;
+	letter-spacing: -.5px;
+}
+
+textarea-container {
+	border: 2px solid var(--T-textarea-border-color);
+	padding: 5px;
+	padding-bottom: 3px;
+	background: var(--T-bg);
+	/* should be approx. line-height * 2 */
+	min-height: calc(2.5em + 2px);
+	max-height: 25vh;	
+}
+textarea-container > textarea {
+	box-shadow: none;
+	border-radius: 0;
+	font-size: 1em !important;
+	outline: none !important;
+}
+textarea-container:focus-within {
+	box-shadow: inset 0 0 0 2px #878;
+}
+textarea-container > textarea:focus {
+	animation-name: none;
+}
+
+/************
+ ** Button **
+ ************/
+
+button {
+	cursor: pointer;
+	font: inherit;
+	font-size: 0.8125em;
+	
+	border: var(--T-button-border);
+	border-radius: 0px;
+	padding: 0 0.5rem;
+	
+	background: var(--button-bg);
+}
+button:hover {
+	background: var(--button-hover-bg);
+}
+button:disabled {
+	color: var(--chat-dim-color); /*todo: proper color here */
+	background: var(--button-disabled-bg);
+}
+button[aria-selected="true"], button[data-selected="true"] {
+	backguijkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkiiiinround: var(--button-selected-bg);
+	background: var(--button-selected-bg);
+	box-shadow: 0px 1px 3px inset var(--button-shadow-color);
+}
+button:active, input:active::file-selector-button {
+	background: var(--button-selected-bg);
+	box-shadow: 0px 1px 3px inset var(--button-shadow-color);
+}
+button:hover {
+	box-shadow: 0px 0px 2px inset var(--button-shadow-color);
+}
+
+
+/* tabs */
+tab-list#\$sidebar_tabs {
+	--bar-height: 2.125rem;
+}
+
+tab-list {
+	display: flex;
+	flex-flow: row;
+	width: 100%;
+	height: var(--bar-height, 1.5625rem);
+	background-color: var(--databarbgcolor) !important;
+}
+tab-list > button {
+	flex: 0mm;
+	min-width: 0;
+	padding: 0;
+	font-size: 1em;
+	background: var(--bar-bg);
+	border: none;
+	border-radius: 5px 5px 0 0;
+	margin-left: 2px;
+}
+tab-list > button:first-child {
+	margin-left: 0;
+}
+tab-list > button:not([aria-selected="true"]) {
+	background: gray;
+	color: white;
+}
+tab-list > button[aria-selected="true"] {
+	background: var(--T-bg);
+	box-shadow: none;
+}
+
+.text-shadow {
+	text-shadow:
+		-.5px -.5px 1px var(--T-color),
+		1px 1px 0px var(--T-color);
+	contain: none;
+}
+tab-list > button img.avatar {
+	width: auto;
+	height: 100%;
+	background: transparent;
+	line-height: var(--bar-height, 1.5625rem); /* for alt text */
+}
+
+/* focus */
+@keyframes focus-switch {
+	from {
+		outline-width: 4px;
+		outline-offset: -4px;
+	}
+}
+/* selector() is pretty new, but i think `not` will succeed if it's not supported */
+@supports not selector(:focus-visible) {
+	:focus, .header-focus-anchor:focus + view-header {
+		outline: var(--T-focus-outline);
+		outline-offset: -2px;
+		animation: focus-switch 0.1s linear;
+	}
+}
+:focus-visible, [role="listitem"]:focus, .header-focus-anchor:focus + view-header {
+	outline: var(--T-focus-outline);
+	outline-offset: -2px;
+	animation: focus-switch 0.1s linear;
+}
+/*.M-spoiler-label:focus-visible {
+	border-color: var(--T-box-bg);
+forgot what this was for ??
+}*/
+	
+.header-focus-anchor {
+	position: absolute;
+}
+
+/* markup stuff */
+.Markup {
+	/* TODO: get rid of all the unnecessary default css */
+	/* we don't need to set color and font etc. */
+	font: inherit;
+	overflow-y: hidden;
+	overflow-x: auto;
+}
+
+.pageContents.Markup h2,
+.pageContents.Markup h3,
+.pageContents.Markup h4,
+.pageContents.Markup h5 {
+	margin-left: -1.5rem;
+	margin-right: -1.5rem;
+	padding-left: 1rem;
+	padding-right: 1rem;
+}
+
+.M-spoiler-label {
+	contain: none; /* the focus outline wasnt showing, idk why */
+}
+
+.Markup media-player .M-image-wrapper {
+	max-height: 75vh !important;
+}
+.Markup media-player .M-image-wrapper > video {
+	object-fit: contain;
+}
+
+.M-image-wrapper > * {
+	outline: none;
+	animation: none;
+}
+.M-image-wrapper:focus-within {
+	outline: var(--T-focus-outline);
+	outline-width: 1px;
+	outline-style: dotted;
+	outline-offset: -1px;
+}
+
+.Markup img:focus {
+	outline-offset: -1px;
+	outline-width: 1px;
+	outline-style: dotted;
+	animation: none;
+}
+.Markup img, .M-image-wrapper {
+	transition: max-height 0.25s ease;
+}
+.Markup [data-big] {
+	max-height: 60vh;
+}
+
+
+/* Links */
+a {
+	text-decoration: none;
+	color: var(--T-link-color);
+}
+a:hover {
+	color: var(--T-link-hover-color);
+	text-decoration: underline;
+}
+
+
+#\$main_slides > view-slot {
+	border-left: 0.5rem solid var(--databarbgcolor);
+	min-width: 4rem !important;
+	width: 50%;
+}
+#\$main_slides > view-slot:first-of-type {
+	border-left: none;
+	flex: 0mm;
+}
+#\$main_slides > view-slot:last-of-type > view-header {
+	padding-right: 2.25rem;
+}
+
+/* header */
+view-header {
+	display: flex;
+	flex-flow: wrap;
+	min-height: var(--bar-height);
+	--bar-height: 2.25rem;
+	z-index: 4;
+	
+	background-color: var(--databarbgcolor);
+	transition: background-color linear 100ms;
+	color: var(--databartxtcolor);
+	box-shadow: var(--normal-shadow);
+}
+/* loading status */
+view-header.error {
+	background-color: var(--header-error-bg);
+	color: var(--header-error-color);
+}
+view-header.loading {
+	background-color: var(--header-loading-bg);
+}
+view-header.rendering {
+	background-color: var(--header-rendering-bg);
+}
+
+/* slot focus indicator */
+view-slot:not(.focused) {
+	--T-textarea-border-color: gray;
+}
+view-slot:not(.focused) .slot-overlay {
+	display: block;
+}
+view-slot:not(.focused) {
+	--normal-shadow: none;
+}
+
+.slot-overlay {
+	pointer-events: none;
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	z-index: 25;
+	display: none;
+	background: fixed url("data:image/gif;base64,R0lGODdhBAAEAAAAMSwAAAAABAAEAMAAAAD///8CBYxhF8hRADs="); /*todo; bmp*/
+	opacity: 0.25;
+}
+dialog {
+	margin: auto;
+}
+dialog::backdrop {
+	background: fixed 2px 1px / 4px url("data:image/webp;base64,UklGRiwAAABXRUJQVlA4TB8AAAAvH8AHAA8w//M///MfeBALJvlL784gov8TgJ7k+dMEAA==");
+/*UklGRiwAAABXRUJQVlA4TB8AAAAvH8AHEA8w//M///sfeBALJvlL784gov8TgJ7k+dMEAA==*/
+	opacity: 0.5;
+}
+
+view-header > div {
+	flex: auto;
+	min-width: 0;
+	align-self: center;
+	padding-right: 0.25rem;
+	display: flex;
+}
+view-header > div > div {
+	flex: none;
+}
+view-header h1 {
+	font-size: 1.625em;
+	font-weight: normal;
+}
+view-header h1 .entity-title {
+	font-weight: normal;
+}
+view-header h1 > span {
+	padding-left: 0.25rem;
+}
+
+/* messy... */
+.header-buttons {
+	height: calc(var(--bar-height) / 2);
+	margin-left: auto;
+	padding: 1px 0;
+	background: goldenrod;
+}
+.header-buttons > * {
+	height: 100%;
+	padding: 0 0.25em;
+	margin-left: 1px;
+	font-size: 0.875em;
+	font-weight: bold;
+	background: var(--bar-bg);
+	display: flex;
+	align-items: center;
+}
+.header-buttons > :last-child {
+	margin-right: 1px;
+}
+.header-buttons > * > :last-child {
+	text-decoration: underline;
+}
+.header-buttons > * > .text-shadow {
+	padding-right: 3px;
+	font-size: 0.75em;
+}
+
+/* sidebar toggle button */
+:root { --socket-status-color: #3f9f5f; }
+:root[data-socket-state="opening"] { --socket-status-color: #6fb7c0; }
+:root[data-socket-pending] { --socket-status-color: #e0c87f; }
+:root[data-socket-state="dead"] { --socket-status-color: #f86060; }
+.toggle-sidebar {
+	transition: border-color linear 100ms;
+	border-color: var(--socket-status-color);
+	border-width: 3px;
+	padding: 0;
+}
+
+
+/* sidebar comments */
+#\$sidebarScroller > * {
+	border-top: 1px solid var(--T-border-color);
+}
+.debugMessage {
+	background: var(--bar-bg);
+	padding: 2px 3px;
+}
+pre {
+	font-family: var(--T-monospace-font);
+	font-size: 0.8125em;
+}
+.debugMessage > pre {
+	overflow-x: scroll;
+	white-space: pre;
+	border-bottom: 1px solid var(--T-border-color);
+}
+
+/* userlist */
+.userlist {
+	display: flex;
+	box-sizing: content-box;
+	height: var(--bar-height);
+	
+	padding: 3px 0;
+	background: var(--databarbgcolor);
+	contain: strict;
+}
+.userlist > * {
+	flex: initial;
+	width: var(--bar-height);
+	height: var(--bar-height);
+	/*border: 1px solid goldenrod;*/
+	margin-left: 1px;
+}
+.userlist > :first-child {
+	margin-left: 0;
+}
+.userlist > * > .avatar {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+.userlist > [data-status="idle"] > .avatar {
+	filter: grayscale(1);
+}
+
+.userlist2 {
+	display: flex;
+	height: unset !important;
+	background: linear-gradient(var(--databarbgcolor) 0mm, var(--databarbgcolor) 1.1875rem, var(--bar-bg) 1.1875rem) !important /* aa */;
+	border-bottom: 1px solid var(--T-border-color);
+	box-shadow: var(--normal-shadow);
+	z-index: 4;
+}
+.userlist2 > .userlist {
+	flex: initial;
+	min-width: 0;
+	padding: 3px;
+	contain: content; /* can't be strict */
+}
+
+
+/* damn forms */
+form-table > .label {
+	align-self: center;
+	padding-right: 0.5rem;
+	font-weight: 500;
+	text-align: right;
+}
+form-table > .field {
+	vertical-align: middle;
+}
+form-table > .wide.label {
+	text-align: left;
+	font-weight: 500;
+	font-size: 1.1875em;
+}
+
+/* general user things */
+.entity-title {
+	font-weight: 500;
+}
+.icon-title {
+	padding-left: calc(1em + 2px + 2px);
+	background: none no-repeat 2px center / 1em 1em;
+}
+.avatar {
+	/*border-radius: 3px;*/
+	background: var(--T-avatar-bg);
+}
+time:not(.Markup *) {
+	font-size: 0.875em;
+	color: var(--T-time-color);
+	vertical-align: baseline;
+}
+.username {
+	font-weight: bold;
+	line-height: 1.2;
+}
+.messageGap {
+	border: 1px dashed gray; /*♥*/
+	margin: 0.3125rem 0;
+}
+.chat-bottom {
+	height: 0.875rem;
+}
+.user-label > .avatar {
+	margin-right: 1px;
+}
+.user-label > span + .avatar {
+	margin-right: 0;
+	margin-left: 2px;
+}
+
+/* chat messages */
+/*
+<message-block> layout:
+┌───────────┲━━━━━━━━━━━━━━━━━━━━━┱─┐
+│ ╭───────╮ ┃ <message-header>    ┃ │
+│ │avatar │ ┗━━━━━━━━━━━━━━━━━━━━━┛ │
+│ ┢━━━━━━━┿┯┯━━━━━━━━━━━━━━━━━━━━━┓ │
+│ ┃       ┊╎╎ <message-part>      ┃ │
+│ ┃╌╌╌╌╌╌╌╯╎╎                     ┃ │
+│ ┃        ╎╎←-(padding-left)     ┃ │
+│ ┃      ←-╎╎-(border-left)       ┃ │
+│ ┡━━━━━━━━┷┷━━━━━━━━━━━━━━━━━━━━━┩ │
+│ ┢━━━━━━━━┯┯━━━━━━━━━━━━━━━━━━━━━┪ │
+│ ┃        ╎╎ <message-part>      ┃ │
+│ ┃        ╎╎       ...           ┃ │
+└─┺━━━━━━━━┷┷━━━━━━━━━━━━━━━━━━━━━┹─┘
+
+DRAW ORDER / z-index - side view
+ ←---- x axis ----→
+↑  ━━━             <message-controls> (nearest, can cover avatar)
+Z  ╌╌╌╌━━━━━━━━━━  <message-part> (area covering avatar is seethrough)
+|  ━━━             <img> - avatar
+↓ ---------------- <message-block> (furthest, contains avatar)
+
+<message-block> contains
+- <message-header> (with avatar/username/time)
+- <message-contents>
+
+within <message-contents> is a list of <message-part>s
+(<message-controls> is also inserted here, immediately after the highlighted <message-part>)
+
+each <message-part> actually extends all the way to the left, and uses left border/padding to shift the content out of this 'gutter'
+
+the reason I don't use padding on the CONTAINER instead, is because i need to display <message-controls>:
+I need the <message-part>s to extend into the gutter, so that i can detect which <message-part> the mouseover/mouseleave events are for, when the cursor is in over gutter
+
+(I also can't use left margin on <message-block>, since mouse events only apply within the border-box)
+*/
+message-block {
+	contain: initial;
+	display: block;
+	box-sizing: content-box;
+	font-size: 1em; /* ? */
+	/* border-left: 0.5em solid rgb(255,153,153) */
+	/* #F99 or #F006 */
+	
+	--chat-gutter: calc(0.5rem * 2 + var(--chat-avatar-size));
+	--chat-message-gap: 0.625rem;
+	padding-right: 0.5rem;
+	min-height: calc(var(--chat-avatar-size) + var(--chat-message-gap));
+	position: relative;
+	padding-bottom: 1px;
+}
+
+message-block.module {
+	color: var(--chat-dim-color);
+}
+
+message-block > img {
+	position: absolute;
+	/* z-index: -1; */
+}
+message-block > img.avatar {
+	width: var(--chat-avatar-size);
+	height: var(--chat-avatar-size);
+	margin-left: 0.5rem;
+	margin-top: var(--chat-message-gap);
+	/*background-color: #AAB*/
+	border: 1px solid #777;
+}
+message-block img.module-avatar {
+	width: 1em;
+	height: 1em;
+	margin: 0;
+	margin-top: 0.2em;
+	margin-left: 0.5em;
+	border: 1px solid #777;
+}
+message-block .module-name {
+	font-style: italic;
+	font-weight: bold;
+}
+message-block > span.module-name {
+	position: absolute;
+	z-index: -1;
+	width: var(--chat-avatar-size);
+	height: var(--chat-avatar-size);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-left: 0.5rem;
+	margin-top: var(--chat-message-gap);
+}
+message-block > .avatar.pixelAvatar {
+	box-sizing: content-box;
+	margin-left: calc(var(--chat-avatar-size) - 2px - var(--avatar-width) + 0.5rem);
+	image-rendering: crisp-edges;
+}
+message-block > img.bigAvatar {
+	width: var(--chat-gutter);
+	height: 100%;
+	object-fit: cover;
+}
+
+message-header {
+	display: flex;
+	flex-flow: wrap-reverse;
+	align-items: flex-start; /* vertically align items to bottom */
+	margin-left: var(--chat-gutter);
+	padding-top: var(--chat-message-gap);
+	margin-bottom: 1px;
+	line-height: 1.2;
+}
+message-block.module message-header {
+	margin-left: 0.5rem;
+}
+message-header > [role="time"] {
+	margin-left: auto; /* expanding margin, pushes element to the right */
+	/* If the username/timestamp line wraps, this negative margin means */
+	/* the <time> can go inside <message-header>'s padding-top region, */
+	/* which reduces the amount of extra vertical space used */
+	margin-top: calc(0px - var(--chat-message-gap));
+	text-align: right;
+	font-size: 0.875em;
+	color: var(--chat-dim-color);
+}
+message-header i {
+	color: gray;
+	font-style: normal;
+}
+message-block > :last-child {
+	contain: initial;
+	display: block;
+}
+/* message parts */
+message-part {
+	display: block;
+	overflow: visible; /* ? */
+	min-height: 1rem;
+	padding: 2px 0;
+	/* total indent here is: <0.5rem> [avatar] <0.5rem> <3px> */
+	/* i.e. 3px more than the username */
+	border-left: calc(0.5rem + var(--chat-avatar-size) + 4px) solid transparent;
+	padding-left: 0.5rem;
+	/* padding/border overlaps with avatars, so clip bg to content-box */
+	-webkit-background-clip: padding !important;
+	-webkit-background-clip: padding-box !important;
+	background-clip: padding-box !important;
+	background: var(--T-bg);
+}
+message-part > .Markup {
+	background: inherit !important;
+	overflow: visible;
+	contain: initial;
+}
+message-block.module > div > message-part {
+	color: var(--chat-dim-color);
+	font-weight: bold;
+	border-left: 0.25rem solid var(--chat-dim-color);
+	margin-left: 0.5rem;
+
+	padding-left: 0.5rem;
+}
+
+message-part.edited {
+	box-shadow: 10px 0 5px -10px inset var(--T-edit-color);
+}
+message-part:focus {
+	background: var(--message-focus-bg);
+	outline: none;
+}
+/* todo: make this nicer. we have all that space in the left margin now, the issue is just containment etc. need to disable all that i guess.. idk probably fine for search results ? ehh */
+message-part.boundary-top {
+	border-top: 2px solid red;
+}
+message-part.boundary-bottom {
+	border-bottom: 2px solid red;
+}
+
+reply-block {
+	display: block;
+	--bar-height: 0.8125rem;
+	font-size: 0.625rem;
+	padding-bottom: 0.5em;
+}
+
+/* message action controls */
+message-controls {
+	display: inline-flex;
+	position: absolute;
+	width: var(--chat-gutter);
+	z-index: 1;
+	-webkit-user-select: none; -moz-user-select: none; user-select: none;
+}
+/* hack to set the height */
+message-controls::before {
+	content: "a";
+	padding: 2px 0; /* note: same as message-part */
+	width: 0;
+	overflow: hidden;
+	visibility: hidden;
+}
+message-controls > button {
+	flex: 0mm;
+	padding: 0 !important;
+	line-height: 0.5rem !important;
+	overflow: hidden;
+}
+message-controls:hover + message-part {
+	background: var(--message-hover-bg);
+}
+
+/* chat input pane */
+.inputPane {
+	background: var(--bar-bg);
+}
+view-root:not(.f-replying) .replyPane {
+	display: none;
+}
+view-root.f-editing .chatTextarea {
+	background: var(--edit-textarea-bg);
+}
+view-root:not(.f-editing) .chat-edit-controls {
+	display: none;
+}
+.chatTextarea[disabled] {
+	background: silver;
+}
+
+.chat-controls-extra {
+	display: none;
+}
+/*message info*/
+.message-info {
+	border: 2px dashed black;
+}
+
+.file-page-image {
+	max-width: 100%;
+	max-height: 50vh;
+	border: 1px solid gray;
+	display: block;
+}
+
+.category-list {
+	display: grid;
+	grid-template-columns: auto auto;
+	grid-auto-flow: row;
+	background: gray;
+}
+.category-list > :any-link:hover {
+	background: var(--T-bg);
+}
+.category-list > * {
+	display: flex;
+	align-items: center;
+	background: var(--bar-bg);
+}
+.category-list > .user-label .avatar {/* hack */
+	width: 1rem;
+	height: 1rem;
+	margin: 0.25rem;
+}
+.category-list > * > span {
+	flex: auto;
+}
+.category-list > .user-label > span {
+	font-weight: normal;
+}
+.category-list > :nth-child(n+3) {
+	margin-top: 1px;
+}
+.category-list > :nth-child(2n) {
+	margin-left: 1px;
+}
+
+/* misc views */
+.editor-textarea {
+	min-height: 3rem;
+	overflow-y: scroll;
+	resize: none;
+}
+.errorPage {
+	padding: 3px;
+}
+.search-comment {
+	border-bottom: 1px solid var(--T-border-color);
+}
+.search-comment-page {
+	display: flex;
+	align-items: center;
+	background: var(--bar-bg);
+}
+.search-comment-buttons {
+	width: 1.5rem;
+	justify-content: space-between;
+}
+.search-comment-buttons > button {
+	flex: 0mm;
+	max-height: 3rem;
+	padding: 0;
+}
+.nav {
+	display: flex;
+	flex-flow: wrap;
+	align-items: center;
+	background: var(--light-invert-bg);
+	color: var(--databartxtcolor);
+	--T-link-color: var(--link-invert-color);
+	--T-link-hover-color: var(--link-invert-hover-color);
+	padding: 2px;
+	line-height: normal;
+}
+.ROW.resize-box > .nav { /* used by editpage */
+	flex-direction: column;
+}
+.COL > resize-handle.nav {
+	min-height: var(--bar-height);
+	height: unset;
+}
+.nav > * {
+	align-self: stretch;
+}
+.nav label {
+	display: contents;
+}
+.nav > span {
+	color: var(--databartxtcolor);
+	align-self: center;
+}
+
+.modified.save-button {
+	background: #B0F;
+	color: white;
+	font-weight: bold;
+}
+.blob-list {
+	display: flex;
+	flex-flow: wrap;
+	margin-left: calc(0px - var(--column-gap));
+}
+.blob-list > * {
+	flex: 0 1 auto;
+	margin-left: var(--column-gap);
+}
+
+/* file viewer */
+.images-thumbnails {
+	display: flex;
+	flex-flow: row wrap;
+}
+
+.images-thumbnails div {
+	cursor: pointer;
+	box-sizing: content-box;
+	padding: 2px;
+	width: 50px;
+	height: 50px;
+}
+.images-current {
+	--border-width: 1px;
+	max-height: calc(100% - var(--border-width) * 2);
+	max-width: calc(100% - var(--border-width) * 2);
+	box-sizing: content-box;
+	aspect-ratio: 4 / 3;
+	border: var(--border-width) solid gray;
+}
+
+.images-container {
+}
+
+.images-data > * {
+	border-bottom: 1px solid var(--T-border-color);
+	padding: 2px 0.25rem;
+}
+.images-data > div {
+	padding: 0;
+	display: flex;
+	flex-flow: row wrap;
+	align-items: center;
+}
+.images-meta > * {
+	border-right: 1px solid gray;
+	padding: 2px 0.25rem;
+}
+
+/* page */
+/* hecko yo */
+.pageContents {
+	max-width: 100%;
+	overflow-x: auto;
+	padding: 1.5rem;
+}
+.editPageContents {
+	padding: 0 1.5rem;
+	border: 1.5rem #F882;
+	border-style: solid none;
+}
+.pageInfoPane {
+	display: flex;
+	flex-flow: wrap;
+	padding: 0 5px;
+	border-bottom: 1px solid var(--T-border-color);
+	background: var(--bar-bg);
+	align-items: center;
+	/*box-shadow: var(--normal-shadow);*/
+}
+.pageInfoPane .user-label {
+	display: flex;
+	align-items: center;
+}
+.user-label2 {
+	display: flex;
+	align-items: center;
+}
+.user-label > span {
+	flex: 0 1 auto;
+}
+/* user page */
+.userPageBox {
+	align-items: flex-start;
+	overflow: auto;
+}
+
+.userPageAvatar {
+	display: inline-block;
+	position: relative;
+	/*width: 10rem;*/
+	/*height: 10rem;*/
+	flex-shrink: 1;
+	margin: 5px;
+	
+	z-index: 1;
+	box-shadow: 2px 2px 5px gray;
+}
+.userPageAvatar > img {
+	display: block;
+	/*width: 100%;*/
+	/*height: 100%;*/
+}
+
+.userPageContents {
+	flex-basis: 0;
+	flex-grow: 1;
+}
+
+/*@media (max-width: 700px) {
+	/* this is broken /
+	.userPageBox {
+		;flex-direction: column
+		;max-height: none
+	}
+	.userPageBox .userPageContents {
+		;flex-basis: auto
+		;width: 100%
+	}
+}*/
+
+/* sidebar */
+sidebar-container {
+	background: var(--T-bg);
+	width: 30vw; /* just a default */
+	min-width: 6em !important;
+	z-index: 20;
+}
+not-sidebar {
+	min-width: 9em !important;
+	position: relative;
+}
+.registerBox {
+	padding: 0.3125rem 0.5rem;
+}
+#\$closeSidebar {
+	height: 2.3125rem;
+	width: 100%;
+}
+
+#\$sidebarResize /*, #\$sidebar_tabs*/ {
+	box-shadow: var(--normal-shadow);
+	z-index: 30;
+}
+.image-box > img {
+	border: 1px solid black;
+}
+#\$openSidebar {
+	position: absolute;
+	width: 2.25rem;
+	height: 2.25rem;
+	top: 0;
+	right: 0;
+	z-index: 90;
+}
+.sidebar-comment {
+	--bar-height: 1.5625rem;
+	contain: strict;
+}
+
+/* sidebar activity */
+#\$sidebarActivity {
+	padding-top: 0.1875rem;
+}
+.activity-page {
+	display: block;
+	border-bottom: 1px solid var(--T-border-color);
+	border-top: 1px solid white;
+	padding: 1px 0;
+	padding-left: 0.1875rem;
+	background: var(--T-bg);
+	contain: content;
+}
+
+.activity-page-bottom {
+	display: flex;
+	height: 1.5625rem;
+	overflow: hidden;
+	justify-content: space-between;
+	contain: strict;
+}
+.activity-page-bottom > * {
+	flex: none;
+}
+
+.activity-users {
+	display: flex;
+	padding: 0 3px;
+}
+
+.activity-scroller > scroll-inner {
+	display: flex;
+	flex-flow: column;
+}
+
+.action-user .avatar {
+	border: 1px solid gray;
+}
+.action-user {
+	position: relative;
+}
+.action-user::after {
+	display: block;
+	position: absolute;
+	/* center the text */
+	top: 0;
+	width: 100%;
+	height: 100%;
+	line-height: var(--bar-height);
+	text-align: center;
+	
+	content: '✏️';
+	text-shadow:
+		-.5px -.5px 1px black,
+		1px 1px 0px black;
+}
+
+/* todo: the css/html for watch activity items is mostly a hack */
+.activity-watch {
+	display: flex;
+}
+.activity-watch > .activity-page-bottom {
+	flex-shrink: 2;
+	flex-grow: 1;
+}
+.activity-watch > .activity-page-bottom > time {
+	width: 100%;
+	text-align: right;
+	padding-left: 0.125em;
+	text-overflow: clip;
+}
+
+.search-page:first-child {
+	border-top-style: solid;
+}
+.search-page {
+	display: block;
+	border: 1px var(--T-border-color);
+	border-bottom-style: solid;
+}
+
+/* sidebar settings list */
+.local-settings {
+	padding: 0.3125rem 0.5rem;
+}
+#\$sidebarEditorPanel > textarea {
+	flex: 1;
+	resize: none;
+	width: 100%;
+}
+.local-settings > div {
+	display: flex;
+	flex-flow: wrap;
+	align-items: center;
+}
+.local-settings > div > button, #\$sidebarEditorPanel > button {
+	margin: 1px;
+}
+.local-settings > div > * {
+	flex: 1 1 auto;
+	width: 49%;
+	min-width: 6.5em;
+}
+.expanded-setting {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	z-index: 5;
+}
+.local-settings > div > button {
+	width: auto;
+	min-width: unset;
+	flex: 0 1 auto;
+}
+.local-settings > div > textarea {
+	width: 100%;
+	height: 3em;
+}
+.local-settings > div > label {
+	font-weight: 500;
+	line-height: 1em;
+	padding-bottom: .1875em;
+}
+.local-settings > div {
+	column-gap: 0.1875rem; /* todo: we can't use this heck! */
+	margin-bottom: 0.3125rem;
+}
+#\$debugInput {
+	resize: vertical;
+	overflow-y: scroll;
+	width: 100%;
+}
+
+[data-disabled] {
+	opacity: 0.5; /* todo */
+}
+
+.edit-field {
+	display: flex;
+	align-items: center;
+	margin-bottom: 0.25rem;
+	font-weight: 500;
+}
+.edit-field > input {
+	font-weight: normal;
+	flex: 1;
+	margin-left: 0.25rem;
+	font-family: var(--T-monospace-font);
+	font-size: 0.8125em;
+	word-spacing: -0.375ch;
+}
+
+view-header .slot-close {
+	color: red;
+	font-weight: bold;
+	padding: 0 0.25em;
+	margin-left: 0.25em;
+	border-width: 1px;
+	height: calc(var(--bar-height) / 2);
+}
+view-slot:only-of-type > view-header .slot-close {
+	display: none;
+}
+/* mobile stuff */
+@media all and (max-width: 700px) {
+	input, textarea, textarea-container {
+		font-size: 1em;
+	}
+	/* message-block { --chat-gutter: 3rem; } */
+}
+
+/* ios safari */
+@supports (-webkit-touch-callout: none) {
+	/* give space to the left so the cursor can reach there */
+	textarea-container > textarea {
+		padding-left: 2px;
+		width: -webkit-fill-available; width: -moz-available; width: stretch;
+	}
+	message-block > img {
+		-webkit-user-select: none;
+	}
+}

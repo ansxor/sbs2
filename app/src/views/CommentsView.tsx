@@ -13,7 +13,7 @@
 
 import { useLayoutEffect, useRef, useState } from 'react'
 import type { Chain, Content, EntityList, Id, Message, NavLocation, StartResult, ViewComponentProps } from '../data/types'
-import { register, type RouteModule } from '../routing/view-registry'
+import { type RouteModule } from '../routing/view-registry'
 import { Form, useForm, type FormSpec, type RangeValue } from '../components/Form'
 import { MessageInfo } from '../components/MessageInfo'
 import { MessageList } from '../services/message-list'
@@ -39,7 +39,7 @@ function rmatch(re: RegExp, str: string): RegExpMatchArray | never[] {
 
 // input.js number_list.from_query — `s.match(/[^,\s]+/g).map(Number)` (unguarded, as the
 // original; throws on a truthy-but-matchless string, kept for parity), null when falsy.
-function nl_from_query(s: string): number[] | null {
+export function nl_from_query(s: string): number[] | null {
   if (s) return s.match(/[^,\s]+/g)!.map((x) => Number(x))
   return null
 }
@@ -418,7 +418,7 @@ function CommentsComponent({ data, loc, header }: ViewComponentProps): React.JSX
 }
 
 // ---- RouteModule (comments.js Start) -----------------------------------------------------------
-const CommentsView: RouteModule = {
+export const CommentsView: RouteModule = {
   Start(loc: NavLocation): StartResult {
     const { chain } = prepare(loc)
     if (!chain) return { quick: true }
@@ -427,29 +427,6 @@ const CommentsView: RouteModule = {
   Component: CommentsComponent,
 }
 
-register('comments', CommentsView)
-
 // comments.js: View.register('chatlogs', {Redirect}) — copy t→s / s / pid / uid into a fresh query
 // with `r` first (to preserve key order), drop to `comments`, and (single pid) fold pid into id.
-register('chatlogs', {
-  Redirect(location: NavLocation): void {
-    const q: Record<string, string> = { r: 'true' }
-    // we do it this way so the ORDER is preserved :D
-    for (const [rawKey, value] of Object.entries(location.query)) {
-      let key = rawKey
-      if (key == 't') key = 's'
-      if (key == 's' || key == 'pid' || key == 'uid') q[key] = value
-    }
-    location.query = q
-    // switch to "comments/<id>" url if there is one pid
-    location.id = null
-    if (q.pid) {
-      const pids = nl_from_query(q.pid)
-      if (pids && pids.length == 1) {
-        delete q.pid
-        location.id = pids[0]!
-      }
-    }
-    location.type = 'comments'
-  },
-})
+// Registered centrally by routing/routes.ts.

@@ -24,7 +24,7 @@ import type {
 } from '../data/types'
 import { avatar_url } from '../services/draw'
 import { MarkupContent } from '../islands/MarkupContent'
-import { register, type RouteModule } from '../routing/view-registry'
+import { type RouteModule } from '../routing/view-registry'
 
 // navigate.js:66 add_header_links — build the <a> the old descriptor produced. Kept
 // byte-identical: `<a href target><span>label</span></a>`, with a prepended
@@ -135,12 +135,10 @@ function UserViewComponent({ data, header }: ViewComponentProps) {
 }
 
 // view.js:157/user.js:65 — register the view under 'user'. Exported as the RouteModule contract
-// (module map line 709) and self-registered on import, mirroring the old `View.register`.
+// (module map line 709) and registered centrally by routing/routes.ts.
 export const UserView: RouteModule = {
   Start,
   Component: UserViewComponent,
 }
-
-register('user', UserView)
 
 export default UserView

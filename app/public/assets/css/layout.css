@@ -1,0 +1,387 @@
+@charset "utf-8";
+
+/****************
+ ** Everything **
+ ****************/
+
+:root {
+	word-break: break-word; /* required for text wrapping to work */
+	-webkit-text-size-adjust: none; /* this fixes an ios safari bug where some text is "stuck" at larger sizes after rotating the screen */
+}
+
+* {
+	margin: 0;
+	box-sizing: border-box;
+	contain: content;
+	/* override default browser styles */
+	/* (these are all inherited properties) */
+	word-break: inherit;
+	font-family: inherit;
+	/* disable ligatures like fi ffi etc.
+		(doesn't affect real languages or emoji) */
+	font-variant-ligatures: none;
+}
+
+/* always display images at correct aspect ratio, even if the element is the wrong size */
+img {
+	object-fit: contain;
+}
+
+img, button, input, select {
+	vertical-align: top;
+}
+
+/* by default, hidden just sets `display: none`, which is overridden by any element which has its display explicitly set (most of them) */
+[hidden] {
+	display: none !important;
+}
+
+/*****************
+ ** Positioning **
+ *****************/
+
+/* HTML lacks a viewport element, and the root element is useless */
+/* because of the root→viewport propagation of certain properties. */
+/* So, we make <body> fill the screen, and use that as our viewport. */
+html, body {
+	position: fixed;
+	overflow: clip; overflow: hidden;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	contain: strict;
+}
+
+/**********
+ ** Flex **
+ **********/
+.ROW, .COL { display: flex; }
+.COL { flex-flow: column; }
+
+.ROW > *, .COL > * { flex: none; }
+.FILL { flex: 0mm; }
+.ROW > .FILL, .ROW > .sized { min-width: 0; }
+.COL > .FILL, .COL > .sized { min-height: 0; }
+.sized { flex-shrink: 1; }
+
+
+/* views */
+view-slot {
+	display: flex;
+	flex-flow: column;
+	contain: strict;
+}
+view-root {
+	flex: 0mm !important;
+	contain: strict;
+}
+/* use solid backgrounds on elements
+ to improve rendering performance + subpixel text usage */
+
+/*
+from what i've noticed, the most important thing is having a solid BG on
+the inner scrolling element (the one which moves when you scroll)
+*/
+
+not-sidebar, sidebar-container,
+.resize-box, tab-list {
+	contain: strict;
+	background: var(--T-bg);
+}
+.SLIDES,
+view-slot, view-root,
+scroll-outer, scroll-inner, scroll-middle,
+auto-scroller,
+.message-list {
+	background: var(--T-bg);
+}
+.resize-box > .FILL, .sized {
+	contain: strict;
+}
+.resize-box > *, .SLIDES > * {
+	background: inherit;
+}
+.resize-box > resize-handle {
+	background: var(--databarbgcolor);
+}
+
+ul, ol, li, /* bullets render outside */
+td, th {  /* border renders outside */
+	contain: none;
+}
+
+/*********/
+/* all elements with user content, must be tied up */
+.pre {
+	white-space: pre-wrap;
+	unicode-bidi: embed;
+}
+
+/* this is really hard to get working */
+/* i wrote that comment in like 2017 it's not that bad w */
+.ellipsis {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	line-height: var(--bar-height);
+}
+.ellipsis, .ellipsis * {
+	white-space: pre !important;
+	vertical-align: top !important;
+}
+
+/*********
+ ** Bar **
+ *********/
+/* the bar system is really gross and should probably be turned into flex now (or grid?)*/
+
+/* These 3 classes handle like 90% of the layout lol */
+.bar { /* contains textitems and items */
+	overflow: hidden;
+	box-sizing: content-box;
+	min-height: var(--bar-height);
+}
+.item { /* for images and other blocks that can't wrap */
+	display: inline-block;
+	height: var(--bar-height);
+	line-height: var(--bar-height);
+}
+.bar .avatar {
+	width: var(--bar-height);
+}
+button.item {
+	line-height: normal !important;
+}
+
+.rem1-7 { --bar-height: 1.6875rem; }
+.rem1-5 { --bar-height: 1.5625rem; }
+.rem2-3 { --bar-height: 2.3125rem; }
+.rem2 { --bar-height: 2rem; }
+
+.linkBar.rem1-5 {
+	padding: 0;
+}
+
+/*****************
+ ** Form Tables **
+ *****************/
+
+form-table {
+	display: grid;
+	grid-template-columns: auto auto;
+	grid-template-columns: fit-content(50%) auto;
+	grid-auto-flow: row;
+	padding: 3px;
+	padding-left: 0.5rem;
+}
+form-table > :nth-child(n+3) {
+	margin-top: 2px;
+}
+form-table > .label {
+	grid-column: 1;
+	grid-row: auto;
+}
+form-table > .field {
+	grid-column: 2;
+	grid-row: auto;
+}
+form-table > .field > * {
+	vertical-align: top;
+}
+form-table > .wide {
+	grid-column: 1 / 3;
+}
+
+/**************
+ ** Scroller **
+ **************/
+
+scroll-outer {
+	display: block;
+	height: 100%;
+	overflow-y: scroll;
+	contain: strict;
+}
+scroll-inner {
+	display: block;
+}
+
+auto-scroller {
+	display: flex;
+	flex-flow: column;
+	overflow-y: scroll;
+	height: 100%;
+	contain: strict;
+}
+auto-scroller.anchor-bottom {
+	flex-flow: column-reverse;
+	overflow-anchor: none;
+}
+scroll-middle {
+	flex: none;
+	margin-top: auto; /* this presses the contents against the bottom if necessary */
+	overflow: hidden; /*overflow: clip;?*/
+}
+scroll-middle > scroll-inner {
+	position: relative;
+}
+/* TODO: wait i thought this was broken?? causing lag on ios? seems fine now th*/
+scroll-inner.scroll-anim3 {
+	transition: transform .4015s cubic-bezier(.16,1,.3,1) 10ms;
+}
+/*xssxxxdddsssaweeexxwxxx333wexxxxxxxweewswwwzzzzw2xxxxxxxxxxxeeezzzwwaaawwwwwwwwwwwwwwwwwwwwwww d dccc eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee`zzzzzzzzzaaaaaaaaaaaaaaaaxxsdssssssssaaasdssddddddddddasdasdasdasdasd*/
+
+
+/***************
+ ** Image Box **
+ ***************/
+.image-box {
+	position: relative;
+	overflow: hidden;
+}
+.image-box > img {
+	position: absolute;
+	box-sizing: border-box;
+	max-width: 100%;
+	max-height: 100%;
+	/* would be nice to replace all this with object-fit: scale-down; but then we couldn't get a border and etc. */
+	left: -10000%;
+	right: -10000%;
+	top: -10000%;
+	bottom: -10000%;
+	margin: auto;
+}
+/*
+would be nice to use something like this
+but, then we can't add a border to the image
+.image-box {
+	overflow: hidden;
+}
+
+.image-box > img {
+	
+	// important: .image-box must have some size constraints otherwise it will infinitely big. idk how to fix this
+	width: 100%;
+	height: 100%;
+	border: 1px solid black;
+} */
+
+/****************
+ ** Slides Box **
+ ****************/
+.SLIDES {
+	display: block;
+	position: relative;
+	overflow: hidden;
+	contain: strict;
+}
+.SLIDES > * {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	overflow: auto;
+	contain: strict;
+}
+.SLIDES > :not(.shown) {
+	visibility: hidden;
+	content-visibility: hidden; /* not widely supported yet */
+	/* we use visibility:hidden instead of display:none so the element keeps its size/layout when hidden */
+}
+
+/****************
+ ** Resize Box **
+ ****************/
+resize-handle {
+	--bar-height: 1.1875rem;
+	-webkit-touch-callout: none;
+	-webkit-user-select: none; -moz-user-select: none; user-select: none;
+	color: var(--databartxtcolor);
+	background: var(--databarbgcolor);
+	overflow: hidden;
+	flex: none;
+	line-height: var(--bar-height);
+}
+resize-handle[data-dragging] {
+	cursor: grabbing;
+}
+.COL > resize-handle {
+	height: var(--bar-height);
+	cursor: ns-resize;
+}
+.ROW > resize-handle {
+	width: var(--bar-height);
+	cursor: ew-resize;
+	line-height: unset;
+}
+.COL > resize-handle::before {
+	content: "↕︎";
+}
+.ROW > resize-handle::before {
+	display: block;
+	content: "↔︎";
+	text-align: center;
+}
+
+/*************
+ ** Sidebar **
+ *************/
+
+/* normal */
+@media not all and (max-width: 700px) {
+	#\$closeSidebar {
+		display: none !important;
+	}
+	:root:not(.f-sidebar) .sidebar-element {
+		display: none !important;
+	}
+}
+/* narrow screen: fullscreen sidebar */
+@media all and (max-width: 700px) {
+	/* make it fullscreen */
+	sidebar-container, not-sidebar {
+		position: fixed;
+		left: 0; top: 0; bottom: 0; right: 0;
+		width: initial !important;
+	}
+	/* hide all sidebar elements except the sidebar itself */
+	.sidebar-element:not(sidebar-container) {
+		display: none;
+	}
+	
+	/* hide the stuff behind the sidebar so you don't interact with it */
+	:root.f-mobileSidebar not-sidebar {
+		visibility: hidden;
+	}
+	/* hide the sidebar */
+	:root:not(.f-mobileSidebar) sidebar-container {
+		visibility: hidden;
+	}
+	
+	sidebar-container > .userlist {
+		padding: 3px;
+	}
+}
+
+/************************
+ ** expanding textarea **
+ ************************/
+
+textarea-container {
+	display: block;
+	box-sizing: content-box;
+	overflow: hidden;
+	contain: strict;
+}
+textarea-container > textarea {
+	display: block;
+	box-sizing: content-box;
+	overflow-y: scroll;
+	
+	resize: none;
+	width: 100%;
+	height: 100%;
+	
+	border: none;
+	padding: 0;
+	margin: 0;
+}

@@ -27,8 +27,7 @@ import type {
   StartResult,
   ViewComponentProps,
 } from '../data/types'
-import { register } from '../routing/view-registry'
-import type { RouteModule } from '../routing/view-registry'
+import { type RouteModule } from '../routing/view-registry'
 import type { SlotHeader } from '../routing/SlotHeaderContext'
 import { protect } from '../routing/protect'
 import { Nav, setActiveEditor } from '../services/nav'
@@ -569,9 +568,6 @@ function EditView({ data, loc, header }: ViewComponentProps): React.JSX.Element 
   )
 }
 
-// editpage.js:306 — View.register('editpage', EditView). Self-registers on import (the L8 shell
-// imports this module for its side effect).
-const EditViewModule: RouteModule = { Start, Component: EditView }
-register('editpage', EditViewModule)
-
-export { EditViewModule }
+// editpage.js:306 — View.register('editpage', EditView). Registered centrally by
+// routing/routes.ts; this module only exports the RouteModule contract.
+export const EditViewModule: RouteModule = { Start, Component: EditView }

@@ -22,8 +22,7 @@ import type {
 } from '../data/types'
 import { Entity } from '../data/entity'
 import { Nav } from '../services/nav'
-import { register } from '../routing/view-registry'
-import type { RouteModule } from '../routing/view-registry'
+import { type RouteModule } from '../routing/view-registry'
 import { CategoryItem } from '../components/CategoryItem'
 import { ContentIcon } from '../components/EntityLabel'
 import { UserLabel } from '../components/UserLabel'
@@ -252,12 +251,5 @@ function CategoryView({ data, loc, header }: ViewComponentProps): React.JSX.Elem
 }
 
 // category.js:128-131 — register the view and the `categories` → `category` redirect.
-const CategoryViewModule: RouteModule = { Start, Component: CategoryView }
-register('category', CategoryViewModule)
-register('categories', {
-  Redirect(location) {
-    location.type = 'category'
-  },
-})
-
-export { CategoryViewModule }
+// Registered centrally by routing/routes.ts; this module only exports the RouteModule contract.
+export const CategoryViewModule: RouteModule = { Start, Component: CategoryView }

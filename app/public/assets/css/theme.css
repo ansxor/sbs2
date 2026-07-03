@@ -1,0 +1,153 @@
+@charset "utf-8";
+
+/* shared */
+:root {
+	--T-font: 1em roboto, x-heart, sans-serif, 'Apple Color Emoji', 'Twemoji Mozilla';
+	--T-monospace-font: 'cascadia code', consolas, monospace, 'Apple Color Emoji', 'Twemoji Mozilla';
+	
+	--chat-avatar-size: 52px; /* 50x50 + border */
+}
+
+/* default theme */
+:root,
+/* light theme */
+:root[data-theme="light"] {
+	color-scheme: light;
+	
+	/* text colors (black) */
+	--T-color: #000;
+	--T-link-color: #045;
+	--T-link-hover-color: #009688;
+	--T-link-visited-color: #606;
+	--T-link-bg: #E5E5FF;
+	--T-time-color: #333;
+	--T-border-color: #808080;
+	--T-image-border: 1px solid #C0C0C0;
+	
+	--chat-dim-color: #666;
+	/* background colors (white) */
+	--T-bg: #FFF;
+	--T-box-bg: #F7F7F7;
+	--T-avatar-bg: #FFF;
+	--message-hover-bg: #DDD;
+	--message-focus-bg: #E5FCFF;
+	--bar-bg: #EEE;
+	--error-bg: #FFC0CB;
+	
+	--T-red-bg:    #FBC;
+	--T-orange-bg: #FDA;
+	--T-yellow-bg: #FF8;
+	--T-green-bg:  #BFA;
+	--T-blue-bg:   #CEF;
+	--T-purple-bg: #DBF;
+	--T-gray-bg:   #DDD;
+	
+	--edit-textarea-bg: #FFFF80;
+	--normal-shadow: 0 2px 3px #0000004D;
+	--T-edit-color: goldenrod;
+	/* inverted text colors (white) */
+	--databartxtcolor: white;
+	--link-invert-color: #DEF;
+	--link-invert-hover-color: #EFF;
+	/* inverted bg colors (black) */
+	--databarbgcolor: #222;
+	--light-invert-bg: #333;
+	
+	--header-loading-bg: #089; /*linear-gradient(#225450, #327070);*/
+	--header-rendering-bg: #094;
+	--header-error-bg: #800;
+	--header-error-color: #FDD;
+	
+	/* buttons */
+	
+	--button-bg: linear-gradient(#EEE 4px, #DDD 4px calc(100% - 4px), #CCC calc(100% - 4px));
+	--button-hover-bg: linear-gradient(#CCC, #DDD);
+	--button-disabled-bg: #AAA;
+	--button-selected-bg: linear-gradient(#888, #999);
+	--button-shadow-color: #0008;
+	
+	--T-button-border: 2px solid #00C8B4;
+	--T-textarea-border-color: #00C8B4;
+	--T-focus-outline: solid 2px #F00;
+}
+
+/* dark theme */
+:root[data-theme="dark"] {
+	color-scheme: dark;
+	caret-color: var(--T-color);
+	--T-color: #FFF;
+	--T-link-color: #9CE;
+	--T-link-visited-color: #C8F;
+	--T-link-hover-color: #5CE;
+	--T-custom-link-decoration: underline #08F;
+	--T-link-bg: #156;
+	--T-time-color: #EEE;
+	--T-border-color: #000;
+	--T-image-border: 1px solid #808080;
+	--chat-dim-color: #666;
+	
+	--T-table-border: 1px solid #888;
+	--T-table-outer-border: 3px solid #888;
+	--T-table-thick-border: 4px solid #888;
+	/* bg */
+	--T-bg: #292929;
+	--T-box-bg: #444;
+	--T-avatar-bg: #808080;
+	--bar-bg: #555;
+	--error-bg: #800000;
+	--T-red-bg: #6A2C2C;
+	--T-blue-bg: #2C4A6A;
+	--T-green-bg: #2C6A2C;
+	--T-yellow-bg: #6A6A2C;
+	--T-orange-bg: #6A4A2C;
+	--T-gray-bg: #383838;
+	--T-purple-bg: #592C6A;
+	--edit-textarea-bg: #750;
+	--normal-shadow: 0 2px 3px #0000004D;
+	--T-edit-color: teal;
+	/* in dark theme, the inverted colors are just normal dark */
+	
+	--databartxtcolor: var(--T-color);
+	--link-invert-color: var(--T-link-color);
+	--link-invert-hover-color: var(--T-link-hover-color);
+	--databarbgcolor: #000;
+	
+	--light-invert-bg: #111;
+	
+	--header-loading-bg: #327070;
+	--header-rendering-bg: #327032;
+	--header-error-bg: #800;
+	--header-error-color: #ECC;
+	
+	--message-hover-bg: #444;
+	--message-focus-bg: #253C3F;
+	
+	--button-selected-bg:linear-gradient(#07B 4px, #06A 4px calc(100% - 4px), #059 calc(100% - 4px));
+	--button-hover-bg: linear-gradient(#037, #048);
+	--button-bg:  linear-gradient(#026, #015);
+	--button-shadow-color: #0008;
+	
+	--T-button-border: 2px solid #05B;
+	--T-textarea-border-color: #05B;
+	--T-focus-outline: solid 2px #B00;
+}
+/* unused */
+/*[data-theme="light"] [data-subtheme~="header-dark"] {
+	--T-color: #FFF;
+	--T-link-color: #DEF;
+	--T-link-hover-color: #EFF;
+	--T-bg: #222;
+	
+	--light-invert-bg: #333;
+	--loading-invert-bg: #009688;
+	--error-invert-bg: #800;
+}
+
+[data-theme="dark"] [data-subtheme~="header-dark"] {
+	--T-bg: #000;
+	
+	--light-invert-bg: #333;
+	--loading-invert-bg: #009688;
+	--error-invert-bg: #800;
+}
+*/

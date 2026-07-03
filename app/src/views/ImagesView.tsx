@@ -22,7 +22,7 @@ import { Nav } from '../services/nav'
 import { Entity, FileMeta } from '../data/entity'
 import { AVATAR_SIZE, avatar_url, time_string } from '../services/draw'
 import { showInSidebar } from '../components/FilePanel'
-import { register } from '../routing/view-registry'
+import { type RouteModule } from '../routing/view-registry'
 
 // images.js:3 — page size (module-global; only read here).
 const IMG_PER_PAGE = 30
@@ -249,6 +249,6 @@ function ImagesViewComponent({ data, loc, header }: ViewComponentProps): React.J
   )
 }
 
-// images.js:188 — View.register('images', ImagesView).
-export const ImagesView = { Start, Component: ImagesViewComponent }
-register('images', ImagesView)
+// images.js:188 — View.register('images', ImagesView). Registered centrally by
+// routing/routes.ts; this module only exports the RouteModule contract.
+export const ImagesView: RouteModule = { Start, Component: ImagesViewComponent }

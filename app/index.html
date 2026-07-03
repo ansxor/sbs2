@@ -5,12 +5,12 @@
 
 <link rel=preconnect href=https://qcs.shsbs.xyz/api crossorigin>
 
-<link rel=icon sizes=16x16 href="/@fs/home/answer/Workspace/sbs2/resource/icon16.ico"> <!-- compatibility -->
-<link rel=icon sizes=16x16 href="/@fs/home/answer/Workspace/sbs2/resource/icon16.png"> <!-- firefox -->
-<link rel=icon sizes=32x32 href="/@fs/home/answer/Workspace/sbs2/resource/icon32.png"> <!-- chrome -->
-<link rel=icon sizes=192x192 href="/@fs/home/answer/Workspace/sbs2/resource/iconbig.png"> <!-- large -->
-<link rel=apple-touch-icon href="/@fs/home/answer/Workspace/sbs2/resource/iconbig.png"> <!-- large 2 -->
-<link rel=image_src href="/@fs/home/answer/Workspace/sbs2/resource/iconbig.png"> <!-- large 3 -->
+<link rel=icon sizes=16x16 href=resource/icon16.ico> <!-- compatibility -->
+<link rel=icon sizes=16x16 href=resource/icon16.png> <!-- firefox -->
+<link rel=icon sizes=32x32 href=resource/icon32.png> <!-- chrome -->
+<link rel=icon sizes=192x192 href=resource/iconbig.png> <!-- large -->
+<link rel=apple-touch-icon href=resource/iconbig.png> <!-- large 2 -->
+<link rel=image_src href=resource/iconbig.png> <!-- large 3 -->
 
 <meta name=theme-color content="#888">
 <meta name=color-scheme content="light dark">
@@ -106,20 +106,20 @@
 
 <!--START (Vite scaffold — replaces the old build-managed block)-->
 <!-- === reused CSS, exact cascade order (ARCHITECTURE §1.5): fonts,layout,markup,style,theme,$customCSS === -->
-<link rel=stylesheet href="/@fs/home/answer/Workspace/sbs2/resource/fonts.css">
-<link rel=stylesheet href="/@fs/home/answer/Workspace/sbs2/src/layout.css">
-<link rel=stylesheet href="/@fs/home/answer/Workspace/sbs2/markup2/markup.css">
-<link rel=stylesheet href="/@fs/home/answer/Workspace/sbs2/src/style.css">
-<link rel=stylesheet href="/@fs/home/answer/Workspace/sbs2/src/theme.css">
+<link rel=stylesheet href=resource/fonts.css>
+<link rel=stylesheet href=assets/css/layout.css>
+<link rel=stylesheet href=markup2/markup.css>
+<link rel=stylesheet href=assets/css/style.css>
+<link rel=stylesheet href=assets/css/theme.css>
 <style id=$customCSS></style>
 
 <!-- === markup2 stays vanilla globals; classic scripts, exact order === -->
-<script src="/@fs/home/answer/Workspace/sbs2/markup2/langs.js"></script>
-<script src="/@fs/home/answer/Workspace/sbs2/markup2/parse.js"></script>
-<script src="/@fs/home/answer/Workspace/sbs2/markup2/legacy.js"></script>
-<script src="/@fs/home/answer/Workspace/sbs2/markup2/render.js"></script>
-<script src="/@fs/home/answer/Workspace/sbs2/markup2/runtime.js"></script>
-<script src="/@fs/home/answer/Workspace/sbs2/markup2/helpers.js"></script>
+<script src=markup2/langs.js></script>
+<script src=markup2/parse.js></script>
+<script src=markup2/legacy.js></script>
+<script src=markup2/render.js></script>
+<script src=markup2/runtime.js></script>
+<script src=markup2/helpers.js></script>
 
 <script>'use strict'
 	// markup2 exposes a classic-script lexical global `Markup`; surface it on window so
@@ -133,6 +133,6 @@
 
 <body>
 <noscript>This web-site requires JavaScript</noscript>
-<div id=root></div>
+<div id=root style='position:fixed; inset:0;'></div>
 <script type=module src="/src/main.tsx"></script>
 <!--END-->

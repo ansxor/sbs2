@@ -37,7 +37,7 @@ import { StatusDisplay } from '../services/status-display'
 import { Apx } from '../services/apx'
 import { print } from '../services/sidebar-log'
 import { Nav, setActiveEditor } from '../services/nav'
-import { register } from '../routing/view-registry'
+import type { RouteModule } from '../routing/view-registry'
 import { ScrollerHost } from '../islands/ScrollerHost'
 import { MessageListView } from '../islands/MessageListView'
 import { MarkupContent } from '../islands/MarkupContent'
@@ -725,7 +725,7 @@ function PageView({ data, header }: ViewComponentProps): React.JSX.Element {
               ↶
             </button>
           </div>
-          <textarea-container className="FILL" ref={textareaContainerRef} onKeyDown={onContainerKeyDown}>
+          <textarea-container class="FILL" ref={textareaContainerRef} onKeyDown={onContainerKeyDown}>
             <textarea
               className="chatTextarea"
               ref={textareaRef}
@@ -746,13 +746,10 @@ function PageView({ data, header }: ViewComponentProps): React.JSX.Element {
   )
 }
 
-// page.js:559 View.register('page', PageView) + View.register('pages', {Redirect})
-register('page', { Start, Component: PageView })
-register('pages', {
-  Redirect(location) {
-    location.type = 'page'
-  },
-})
+// page.js:559 View.register('page', PageView) + View.register('pages', {Redirect}).
+// Registration is handled centrally by routing/routes.ts; this module only exports the
+// RouteModule contract and keeps its chat-related Settings.add side effects.
+export const PageViewModule: RouteModule = { Start, Component: PageView }
 
 // page.js:564-614 — the chat-related Settings, registered as import side effects (init order =
 // registration order). The commented-out big_avatar / big_avatar_id fields stay commented.

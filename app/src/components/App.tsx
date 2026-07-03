@@ -27,7 +27,7 @@ export function App(): React.JSX.Element {
   const { containerRef, handleRef } = useResizable('sidebarWidth', { side: 'right' })
 
   return (
-    <div className="resize-box ROW" style={{ position: 'fixed', inset: 0 }}>
+    <div className="resize-box ROW" style={{ position: 'fixed', inset: 0, width: '100vw', height: '100dvh' }}>
       {/* MAIN — the slots row (was <not-sidebar id=$main_slides>) */}
       <not-sidebar class="FILL ROW" id="$main_slides">
         <button id="$openSidebar" className="toggle-sidebar" onClick={() => toggleSidebar()}>

@@ -9,8 +9,7 @@
 //   - Nav.reload() is the global RELOAD() (navigate.js:370 → index.html) — called on success.
 import { useLayoutEffect } from 'react'
 import type { StartResult, ViewComponentProps } from '../data/types'
-import type { RouteModule } from '../routing/view-registry'
-import { register } from '../routing/view-registry'
+import { type RouteModule } from '../routing/view-registry'
 import { PasswordInput } from '../components/PasswordInput'
 import { Req } from '../services/request'
 
@@ -95,11 +94,9 @@ function AccountComponent({ header }: ViewComponentProps): React.JSX.Element {
   )
 }
 
-// account.js:77 — View.register('account', AccountView). Self-registers on import (the L8 shell
-// imports this module for its side effect), matching the original module-load registration.
+// account.js:77 — View.register('account', AccountView). Registered centrally by
+// routing/routes.ts; this module only exports the RouteModule contract.
 export const AccountView: RouteModule = {
   Start,
   Component: AccountComponent,
 }
-
-register('account', AccountView)

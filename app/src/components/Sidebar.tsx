@@ -40,7 +40,7 @@ import { content_label } from '../services/draw-dom'
 import { avatar_url, censorSpoilerText } from '../services/draw'
 import { setPrintSink, sidebar_debug } from '../services/sidebar-log'
 import { setImagesSidebarTabSelect } from '../views/ImagesView'
-import { onMeAvatar } from '../boot/bootstrap'
+import { onMeAvatar } from '../services/me-avatar'
 import type { Content, Message, User } from '../data/types'
 
 // ---------------------------------------------------------------------------------------------
