@@ -42,6 +42,14 @@ export function findLast<T>(
   return undefined
 }
 
+// --- number_list.from_query (input.js) ---
+// `s.match(/[^,\s]+/g).map(Number)` (unguarded, as the original; throws on a
+// truthy-but-matchless string, kept for parity), null when falsy. Used by the chatlogs
+// redirect (routing/routes.ts) and CommentsView's form parsing.
+export function nl_from_query(s: string): number[] | null {
+  if (s) return s.match(/[^,\s]+/g)!.map((x) => Number(x))
+  return null
+}
 // --- Generator.prototype.run (fill.js:94) ---
 // The vanilla async/await replacement: drives a generator to completion as a coroutine. Each
 // step exposes a resume function (obtained by the generator via `let STEP = yield`) which the

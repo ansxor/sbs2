@@ -1,20 +1,20 @@
 // L5a — central route handler.
-// Explicitly imports every view module and registers its route(s) with the view-registry.
-// This replaces the old self-registering side-effect imports in the deleted boot/bootstrap.ts.
+// Registers every view route with the view-registry. View modules are lazy-loaded (register_lazy)
+// so each view ships in its own chunk — the boot bundle no longer pulls in every view. Redirects
+// stay eager (they are pure functions registered at boot). The chatlogs redirect uses
+// nl_from_query (moved to core/util so it doesn't drag CommentsView into the boot bundle).
+//
+// Dynamic imports (ts-no-dynamic-import exception): each view is a literal module known at
+// author time, but static imports would bundle all views into the boot chunk — defeating the
+// code-splitting goal. The dynamic import specifier is the literal view path; the loader runs
+// once per type and the resolved module is cached by view-registry.resolve_view.
 import type { NavLocation } from '../data/types'
-import { register } from './view-registry'
-
-import { PageViewModule } from '../views/PageView'
-import { CommentsView, nl_from_query } from '../views/CommentsView'
-import { EditViewModule } from '../views/EditView'
-import { ImagesView } from '../views/ImagesView'
-import { CategoryViewModule } from '../views/CategoryView'
-import { UserView } from '../views/UserView'
-import { AccountView } from '../views/AccountView'
+import { register, register_lazy } from './view-registry'
+import { nl_from_query } from '../core/util'
 
 export function registerRoutes(): void {
   // page routes
-  register('page', PageViewModule)
+  register_lazy('page', () => import('../views/PageView').then((m) => m.PageViewModule))
   register('pages', {
     Redirect(location: NavLocation): void {
       location.type = 'page'
@@ -22,7 +22,7 @@ export function registerRoutes(): void {
   })
 
   // comments routes
-  register('comments', CommentsView)
+  register_lazy('comments', () => import('../views/CommentsView').then((m) => m.CommentsView))
   register('chatlogs', {
     Redirect(location: NavLocation): void {
       const q: Record<string, string> = { r: 'true' }
@@ -46,13 +46,13 @@ export function registerRoutes(): void {
   })
 
   // edit route
-  register('editpage', EditViewModule)
+  register_lazy('editpage', () => import('../views/EditView').then((m) => m.EditViewModule))
 
   // images route
-  register('images', ImagesView)
+  register_lazy('images', () => import('../views/ImagesView').then((m) => m.ImagesView))
 
   // category routes
-  register('category', CategoryViewModule)
+  register_lazy('category', () => import('../views/CategoryView').then((m) => m.CategoryViewModule))
   register('categories', {
     Redirect(location: NavLocation): void {
       location.type = 'category'
@@ -60,8 +60,8 @@ export function registerRoutes(): void {
   })
 
   // user route
-  register('user', UserView)
+  register_lazy('user', () => import('../views/UserView').then((m) => m.UserView))
 
   // account route
-  register('account', AccountView)
+  register_lazy('account', () => import('../views/AccountView').then((m) => m.AccountView))
 }

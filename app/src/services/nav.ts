@@ -144,7 +144,7 @@ export const Nav: NavApi = {
         const m = pair.match(/[^=]*(?==?([^]*))/)!
         query[decodeURIComponent(m[0])] = decodeURIComponent(m[1]!)
       }
-    return { type, id, query, fragment: fragment ? decodeURIComponent(fragment) : null }
+    return { type, id, query, fragment: fragment ? decodeURIComponent(fragment) : null } as NavLocation
   },
 
   // navigate.js:336 — inverse of parse_url.

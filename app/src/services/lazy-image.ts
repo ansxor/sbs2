@@ -14,7 +14,8 @@
 // here (it is a higher layer) — the wiring direction is inverted, matching the existing sink
 // precedent in that file.
 
-import { Settings } from './settings'
+// (Settings import removed — the lazy_loading setting is now registered centrally by
+// services/settings-modules.ts. toggle_observer is exported here so that registrar can call it.)
 
 // The shared observer, or null when lazy loading is disabled. Exported as a live `let` binding so
 // consumers importing `observer` observe toggle_observer's reassignments (ES-module live bindings).
@@ -82,18 +83,4 @@ export function toggle_observer(state: boolean): void {
     observer = null
   }
 }
-
-// view.js:311-318. Registered from this module (the observer's owner in the split) so lazy loading
-// is on by default. The old `options_labels` ('when visible'/'immediately') are a SettingsForm
-// presentation concern dropped here to match the settings-registry precedent; the 'on'/'off'
-// values and the toggle logic are preserved exactly.
-Settings.add({
-  name: 'lazy_loading',
-  label: 'Image Loading',
-  type: 'select',
-  options: ['on', 'off'],
-  update(value) {
-    // bad
-    toggle_observer(value == 'on')
-  },
-})
+// (Settings.add(lazy_loading) removed — registered centrally by services/settings-modules.ts.)

@@ -12,8 +12,8 @@
 // identical either way. anim_type/reverse are snapshotted from the class statics at construction, so
 // changing the setting does not retro-update live instances (verbatim behavior).
 
-import { Settings } from './settings'
-import type { SettingDescriptor } from '../data/types'
+// (Settings import removed — scroller_anim_type/scroller_anchor are now registered centrally by
+// services/settings-modules.ts. anim_type/reverse class statics are mutated by that registrar.)
 
 interface TrackItem {
 	callback: (oldSize: number) => void
@@ -245,33 +245,5 @@ export class Scroller {
 		Scroller.track_height.remove(this.$outer)
 	}
 }
-
-// Settings registrations (side effects at load — scroller.js). These mutate the class statics;
-// existing Scroller instances snapshot anim_type/reverse at construction and are NOT retroactively
-// updated. `options_labels` is carried for the L6 SettingsForm (not present on SettingDescriptor).
-interface SelectSettingDescriptor extends SettingDescriptor {
-	options_labels?: string[]
-}
-
-const scrollerAnimType: SelectSettingDescriptor = {
-	name: 'scroller_anim_type',
-	label: 'Smooth Scrolling',
-	type: 'select',
-	options: ['1', '2', '0'],
-	options_labels: ['original', 'css animation', 'disabled'],
-	update(value) {
-		Scroller.anim_type = +value
-	},
-}
-const scrollerAnchor: SelectSettingDescriptor = {
-	name: 'scroller_anchor',
-	label: 'Scroller Origin',
-	type: 'select',
-	options: ['top', 'bottom'],
-	options_labels: ['top', 'bottom (unstable!)'],
-	update(value) {
-		Scroller.reverse = value == 'bottom'
-	},
-}
-Settings.add(scrollerAnimType)
-Settings.add(scrollerAnchor)
+// (scrollerAnimType/scrollerAnchor + Settings.add removed — registered centrally by
+// services/settings-modules.ts. The `options_labels` extension is defined there.)

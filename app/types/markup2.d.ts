@@ -1,8 +1,6 @@
-// Ambient declarations for the vanilla `markup2` submodule (loaded as classic <script>s
-// in index.html, which assigns the lexical global `Markup`; index.html also surfaces it
-// as `window.Markup`). markup2 is an external, untyped dependency — `any` is used for its
-// internals; the extension points the ports touch (convert_lang, renderer.url_scheme,
-// renderer.create.image, filter_url) are typed. See ARCHITECTURE §8.3.
+// Ambient declarations for the markup2 package. The global `Markup` binding is populated by
+// app/src/main.tsx, which imports the package modules and assigns `window.Markup` so the rest
+// of the app can keep using the bare global. See ARCHITECTURE §8.3.
 
 interface MarkupRenderer {
   // installed monkeypatches: renderer.url_scheme['sbs:'|'https:'] (view.js) map a parsed
@@ -36,10 +34,22 @@ interface MarkupGlobal {
   ): Element | DocumentFragment
 }
 
-// markup2 helpers.js declares `let Markup` at classic-script top level → a global lexical
-// binding reachable by bare name from bundled modules.
+// main.tsx assigns window.Markup after importing markup2/helpers.js.
 declare const Markup: MarkupGlobal
 
 interface Window {
   Markup: MarkupGlobal
+}
+
+declare module 'markup2/helpers.js' {
+  const Markup: MarkupGlobal
+  export default Markup
+}
+
+declare module 'markup2/runtime.js' {
+  // side-effects only (registers <youtube-embed> custom element)
+}
+
+declare module 'markup2/markup.css' {
+  // side-effects only (styles for .Markup content)
 }

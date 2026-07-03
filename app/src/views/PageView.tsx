@@ -34,7 +34,7 @@ import { avatar_url } from '../services/draw'
 import { ResizeTracker, type Scroller } from '../services/scroller'
 import { MessageList } from '../services/message-list'
 import { StatusDisplay } from '../services/status-display'
-import { Apx } from '../services/apx'
+// (Apx import removed — pixel_art setting's Apx.start/stop now lives in settings-modules.ts.)
 import { print } from '../services/sidebar-log'
 import { Nav, setActiveEditor } from '../services/nav'
 import type { RouteModule } from '../routing/view-registry'
@@ -751,48 +751,8 @@ function PageView({ data, header }: ViewComponentProps): React.JSX.Element {
 // RouteModule contract and keeps its chat-related Settings.add side effects.
 export const PageViewModule: RouteModule = { Start, Component: PageView }
 
-// page.js:564-614 — the chat-related Settings, registered as import side effects (init order =
-// registration order). The commented-out big_avatar / big_avatar_id fields stay commented.
-Settings.add({ name: 'nickname', label: 'Chat Nickname', type: 'text', order: -9000 })
-Settings.add({
-  name: 'chat_markup',
-  label: 'Chat Markup',
-  type: 'select',
-  options: ['12y2', '12y', 'plaintext'],
-  order: -8000,
-})
-Settings.add({ name: 'avatar', label: 'Device Avatar', type: 'text', order: -7000 })
-Settings.add({
-  name: 'avatar_pixel',
-  label: 'Pixelate My Avatar',
-  type: 'select',
-  options: ['off', 'on'],
-  order: -6000,
-})
-Settings.add({
-  name: 'pixel_art',
-  label: 'Display Pixel Avatars',
-  type: 'select',
-  options: ['on', 'off'],
-  default: 'off',
-  order: -5000,
-  update(value) {
-    if (value == 'on') Apx.start()
-    else {
-      Apx.stop()
-      for (const img of document.querySelectorAll<HTMLElement>('.apx')) {
-        img.classList.remove('pixelAvatar')
-        img.style.width = ''
-        img.style.height = ''
-      }
-    }
-  },
-})
-Settings.add({
-  name: 'chat_enter',
-  label: 'Chat Enter Key',
-  type: 'select',
-  options: ['submit', 'newline', 'submit, strip trailing', 'newline, strip trailing'],
-})
+// (page.js:564-614 chat Settings.add calls removed — registered centrally by
+// services/settings-modules.ts. Settings import retained: PageView still reads
+// Settings.values.chat_enter / .avatar / .nickname at runtime.)
 
 export { PageView }

@@ -19,6 +19,7 @@ import { MessageInfo } from '../components/MessageInfo'
 import { MessageList } from '../services/message-list'
 import { content_label } from '../services/draw-dom'
 import { Nav } from '../services/nav'
+import { nl_from_query } from '../core/util'
 
 // ---- form spec (comments.js Start) — field order + params are load-bearing (query keys) ----
 const FORM_SPEC: FormSpec = {
@@ -37,12 +38,8 @@ function rmatch(re: RegExp, str: string): RegExpMatchArray | never[] {
   return str.match(re) || []
 }
 
-// input.js number_list.from_query — `s.match(/[^,\s]+/g).map(Number)` (unguarded, as the
-// original; throws on a truthy-but-matchless string, kept for parity), null when falsy.
-export function nl_from_query(s: string): number[] | null {
-  if (s) return s.match(/[^,\s]+/g)!.map((x) => Number(x))
-  return null
-}
+// (nl_from_query moved to core/util.ts — imported above. The chatlogs redirect in routes.ts
+// also imports it from there, so CommentsView no longer needs to export it.)
 
 // input.js range.decode/from_query.
 function decode_range(x: string): RangeValue | null {

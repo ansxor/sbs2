@@ -29,3 +29,12 @@ interface Window {
   print(...args: any[]): void
   log: any
 }
+
+// Vite's import.meta.env — injected at build time. Only the fields used by the app are declared.
+interface ImportMeta {
+  env: {
+    DEV: boolean
+    MODE: string
+    PROD: boolean
+  }
+}

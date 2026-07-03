@@ -2,12 +2,15 @@
 // route via the central route handler, then mounts <App/> into #root.
 // (ARCHITECTURE §10 main.js row, §11 Layer 8).
 //
-// CSS import decision (finalized): the reused stylesheet cascade is loaded via <link> tags in
-// index.html in the exact old order (ARCHITECTURE §1.5) — there is deliberately NO CSS `import`
-// here. StrictMode is safe because all fragile state lives in services, never React state
-// (ARCHITECTURE §1.2); islands dispose+recreate on the double-invoke.
+// Local reused stylesheets are loaded via <link> tags in index.html (fonts, layout, style, theme).
+// markup2/markup.css is imported here as a package CSS dependency. StrictMode is safe because
+// all fragile state lives in services, never React state (ARCHITECTURE §1.2); islands dispose
+// and recreate on the double-invoke.
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import Markup from 'markup2/helpers.js'
+import 'markup2/runtime.js'
+import 'markup2/markup.css'
 import { App } from './components/App'
 import { print } from './services/sidebar-log' // side effect: installs window.print / window.log
 import { setImmediateMode, drainReady } from './core/ready'
@@ -22,7 +25,12 @@ import { load_image } from './services/lazy-image'
 import { installFocusNav } from './services/focus-nav'
 import { fireMeAvatar } from './services/me-avatar'
 import { registerRoutes } from './routing/routes'
+import { registerModuleSettings } from './services/settings-modules'
 import type { ListMap, User } from './data/types'
+
+// markup2 exposes a `Markup` lexical global in the old app. Surface the package export on
+// window so bundled ES modules can keep reaching it unchanged.
+window.Markup = Markup
 
 // ---------------------------------------------------------------------------------------------
 // Load-time side effects (ungated — these ran when the old src/*.js modules were evaluated,
@@ -52,9 +60,13 @@ installFocusNav()
 // ---------------------------------------------------------------------------------------------
 // Central route handler: register all views/redirects explicitly instead of relying on
 // side-effect imports scattered through bootstrap.ts.
-// ---------------------------------------------------------------------------------------------
 registerRoutes()
 
+// Register the module-owned settings (lazy_loading, scroller_*, chat_* etc) centrally. These used
+// to fire as import side effects in lazy-image/scroller/PageView; decoupled so views can be
+// lazy-loaded. Must run before Settings.init() (in immediate()) — registration order drives the
+// order init-time update() side effects run.
+registerModuleSettings()
 // ---------------------------------------------------------------------------------------------
 // immediate() — main.js:13. Synchronous bootstrap with the logged-out early return.
 // ---------------------------------------------------------------------------------------------

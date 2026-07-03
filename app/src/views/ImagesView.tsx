@@ -22,6 +22,7 @@ import { Nav } from '../services/nav'
 import { Entity, FileMeta } from '../data/entity'
 import { AVATAR_SIZE, avatar_url, time_string } from '../services/draw'
 import { showInSidebar } from '../components/FilePanel'
+import { selectImagesSidebarTab } from '../services/images-sidebar-tab'
 import { type RouteModule } from '../routing/view-registry'
 
 // images.js:3 — page size (module-global; only read here).
@@ -31,10 +32,8 @@ const IMG_PER_PAGE = 30
 // The old ImagesView reached the global `Sidebar.tabs.select('file')`. Sidebar is a higher layer
 // (L8) not present here, so a no-op sink is injected and Sidebar/boot registers the real selector
 // at mount — mirroring request.ts's setSidebarTabSelect / FilePanel's showInSidebar controller.
-let selectSidebarTab: (name: string) => void = () => {}
-export function setImagesSidebarTabSelect(fn: (name: string) => void): void {
-  selectSidebarTab = fn
-}
+// The sink holder lives in services/images-sidebar-tab.ts so Sidebar (boot bundle) does not
+// import this lazy view module just to register the selector.
 
 // images.js:6 — Start(location): read {bucket,page,uid} from the query and build the chain. The
 // `page|0||1`, the `{{3}}`/`@bucket`/`JSON.stringify(bucket)` query-DSL templates, and the raw
@@ -168,7 +167,7 @@ function ImagesViewComponent({ data, loc, header }: ViewComponentProps): React.J
   const onInSidebar = (): void => {
     if (!current) return
     showInSidebar(current)
-    selectSidebarTab('file')
+    selectImagesSidebarTab('file')
   }
 
   // images.js:120-148 — the detail pane (select_image). Rendered from `current`; when null the

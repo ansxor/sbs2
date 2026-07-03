@@ -19,7 +19,7 @@ import type { Chain, ListMap, NavLocation, SlotHeaderApi, ViewComponentProps } f
 import { Nav } from '../services/nav'
 import { Lp } from '../services/socket'
 import type { LpHandle } from '../services/socket'
-import { get_view } from './view-registry'
+import { resolve_view } from './view-registry'
 import { sidebar_debug } from '../services/sidebar-log'
 
 // What Slot.tsx should render in the <view-slot> body below the header.
@@ -94,40 +94,54 @@ export function useViewLifecycle(url: string, header: SlotHeaderApi): LifecycleS
       }, 0)
     }
 
-    try {
-      phase = 'view lookup'
-      const view = get_view(loc.type)
-      if (!view) throw 'type'
+    // view resolution is async (lazy-loaded views). The 'view lookup' phase awaits the dynamic
+    // import; subsequent navigations to the same type hit the cache and stay synchronous.
+    void (async () => {
+      try {
+        phase = 'view lookup'
+        // dev-only runtime validation of the parsed NavLocation. Dynamic import keeps zod
+        // (~80KB) out of the production bundle; the static type contract (data/types.ts)
+        // holds in prod. Exception to ts-no-dynamic-import: prod must not ship zod.
+        if (import.meta.env.DEV) {
+          const { NavLocationSchema } = await import('./nav-location-schema')
+          NavLocationSchema.parse(loc)
+        }
+        const view = await resolve_view(loc.type)
 
-      setState((s) => ({ ...s, loadState: 1, error: false })) // loading_state(1): 'loading'
+        if (ac.signal.aborted) return
 
-      phase = 'view.Start'
-      const start = view.Start(loc)
 
-      if ('quick' in start) {
-        do_render(view.Component, {})
-      } else {
-        const chain: Chain = start.chain
-        const check = start.check
-        phase = 'starting request'
-        handle = Lp.chain(chain, (resp: ListMap, err?: Error) => {
-          if (ac.signal.aborted) return
-          handle = null
-          if (err) {
-            handle_error(err)
-            return
-          }
-          phase = 'view.Check'
-          if (check && !check(resp)) {
-            handle_error('data')
-            return
-          }
-          do_render(view.Component, resp)
-        })
+        setState((s) => ({ ...s, loadState: 1, error: false })) // loading_state(1): 'loading'
+
+        phase = 'view.Start'
+        const start = view.Start(loc)
+
+        if ('quick' in start) {
+          do_render(view.Component, {})
+        } else {
+          const chain: Chain = start.chain
+          const check = start.check
+          phase = 'starting request'
+          handle = Lp.chain(chain, (resp: ListMap, err?: Error) => {
+            if (ac.signal.aborted) return
+            handle = null
+            if (err) {
+              handle_error(err)
+              return
+            }
+            phase = 'view.Check'
+            if (check && !check(resp)) {
+              handle_error('data')
+              return
+            }
+            do_render(view.Component, resp)
+          })
+        }
+      } catch (e) {
+        if (ac.signal.aborted) return
+        handle_error(e)
       }
-    } catch (e) {
-      handle_error(e)
-    }
+    })()
 
     // navigate.js:172 cancel() — abort the in-flight request and flush pending statuses. The
     // view Component's own hook cleanups handle Events.destroy (useBusListener), View.lost, the
