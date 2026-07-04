@@ -23,6 +23,7 @@ import { Nav } from './services/nav'
 import { installPatches, setImageLoader } from './services/markup'
 import { load_image } from './services/lazy-image'
 import { installFocusNav } from './services/focus-nav'
+import { installEmbiggen } from './services/embiggen'
 import { fireMeAvatar } from './services/me-avatar'
 import { registerRoutes } from './routing/routes'
 import { registerModuleSettings } from './services/settings-modules'
@@ -43,6 +44,8 @@ setImageLoader(load_image)
 installPatches()
 // keyboard.js roving-tabindex keydown/focusout document managers.
 installFocusNav()
+// view.js image click-to-expand behavior.
+installEmbiggen()
 
 // main.js:4-8 — inject the user's html_inject setting. `document.write` is destructive after
 // parse, so (per ARCHITECTURE §6/§10 "document.write" note) we inject into a container before
@@ -103,11 +106,14 @@ function immediate(): void {
       }
       console.log('🌄 Got own userdata')
       Req.me = me
+      Lp.users[~me.id] = me
+      // Announce our online status only once the user record is available locally; this lets
+      // Lp.set_status optimistically update the userlist without crashing StatusDisplay.get_user.
+      Lp.set_status(0, 'active')
+      Lp.flush_statuses()
       fireMeAvatar()
     },
   )
-
-  Lp.set_status(0, 'active')
 
   Lp.start_websocket()
 
