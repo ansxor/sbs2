@@ -1,0 +1,130 @@
+{
+  "theme": {
+    "extend": {
+      "colors": {
+        "primary": "#000000",
+        "secondary": "#333333",
+        "tertiary": "#009688",
+        "quaternary": "#004455",
+        "neutral": "#ffffff",
+        "neutral-weak": "#f7f7f7",
+        "neutral-medium": "#eeeeee",
+        "neutral-strong": "#808080",
+        "border": "#808080",
+        "dim": "#666666",
+        "link": "#004455",
+        "link-hover": "#009688",
+        "link-visited": "#660066",
+        "link-bg": "#e5e5ff",
+        "error": "#800000",
+        "error-bg": "#ffc0cb",
+        "warn": "#b8422e",
+        "success": "#009944",
+        "info": "#008899",
+        "red-bg": "#ffbbcc",
+        "orange-bg": "#ffddaa",
+        "yellow-bg": "#ffff88",
+        "green-bg": "#bbffaa",
+        "blue-bg": "#cceeff",
+        "purple-bg": "#ddbbff",
+        "gray-bg": "#dddddd",
+        "online": "#3f9f5f",
+        "connecting": "#6fb7c0",
+        "pending": "#e0c87f",
+        "offline": "#f86060",
+        "focus": "#ff0000",
+        "focus-dark": "#bb0000",
+        "modified": "#bb00ff",
+        "edit": "#daa520",
+        "edit-dark": "#008080",
+        "invert-bg": "#222222",
+        "invert-text": "#ffffff",
+        "invert-bg-light": "#333333",
+        "invert-bg-dark": "#111111",
+        "shadow": "#0000004d"
+      },
+      "fontFamily": {
+        "body": [
+          "Roboto, x-heart, system-ui, sans-serif, 'Apple Color Emoji', 'Twemoji Mozilla'"
+        ],
+        "monospace": [
+          "'Cascadia Code', Consolas, monospace, 'Apple Color Emoji', 'Twemoji Mozilla'"
+        ],
+        "h1": [
+          "Roboto, x-heart, system-ui, sans-serif, 'Apple Color Emoji', 'Twemoji Mozilla'"
+        ],
+        "small": [
+          "Roboto, x-heart, system-ui, sans-serif, 'Apple Color Emoji', 'Twemoji Mozilla'"
+        ],
+        "label": [
+          "Roboto, x-heart, system-ui, sans-serif, 'Apple Color Emoji', 'Twemoji Mozilla'"
+        ],
+        "button": [
+          "Roboto, x-heart, system-ui, sans-serif, 'Apple Color Emoji', 'Twemoji Mozilla'"
+        ],
+        "code": [
+          "'Cascadia Code', Consolas, monospace, 'Apple Color Emoji', 'Twemoji Mozilla'"
+        ]
+      },
+      "fontSize": {
+        "body": [
+          "1rem",
+          {
+            "fontWeight": "400"
+          }
+        ],
+        "monospace": [
+          "0.8125rem",
+          {}
+        ],
+        "h1": [
+          "1.625rem",
+          {
+            "fontWeight": "400"
+          }
+        ],
+        "small": [
+          "0.875rem",
+          {}
+        ],
+        "label": [
+          "0.8125rem",
+          {
+            "fontWeight": "500"
+          }
+        ],
+        "button": [
+          "0.8125rem",
+          {}
+        ],
+        "code": [
+          "12px",
+          {
+            "lineHeight": "14px",
+            "letterSpacing": "-0.5px"
+          }
+        ]
+      },
+      "borderRadius": {
+        "none": "0px",
+        "sm": "1px",
+        "md": "3px",
+        "lg": "5px",
+        "full": "9999px"
+      },
+      "spacing": {
+        "xs": "2px",
+        "sm": "4px",
+        "md": "8px",
+        "lg": "16px",
+        "xl": "24px",
+        "xxl": "48px",
+        "avatar": "52px",
+        "bar-sm": "1.5625rem",
+        "bar-md": "2.125rem",
+        "bar-lg": "2.25rem",
+        "bar-xl": "2.4375rem"
+      }
+    }
+  }
+}
