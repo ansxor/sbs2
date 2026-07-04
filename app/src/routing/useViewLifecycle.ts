@@ -51,6 +51,13 @@ export function useViewLifecycle(url: string, header: SlotHeaderApi): LifecycleS
     let phase = '...'
     const loc = Nav.parse_url(url)
 
+    // navigate.js:197 — loading_state(1) fires synchronously at the start of handle_view2,
+    // before the async view lookup. Set it immediately so the header shows the loading state
+    // right away. Crucially, the updater form (s) => ({ ...s, ... }) preserves s.render — the
+    // previous view stays visible in the body until do_render swaps it for the new one, matching
+    // the original where switch_view only removes the old DOM after the request completes.
+    setState((s) => ({ ...s, loadState: 1, error: false }))
+
     // navigate.js:236 — build the ErrorView. Distinct sentinels: 'type' (unknown view), 'data'
     // (check() failed), anything else (an exception during `phase`).
     const commit_error = (title: string, message: Node | null): void => {
@@ -109,9 +116,6 @@ export function useViewLifecycle(url: string, header: SlotHeaderApi): LifecycleS
         const view = await resolve_view(loc.type)
 
         if (ac.signal.aborted) return
-
-
-        setState((s) => ({ ...s, loadState: 1, error: false })) // loading_state(1): 'loading'
 
         phase = 'view.Start'
         const start = view.Start(loc)

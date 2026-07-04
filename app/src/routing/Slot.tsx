@@ -104,9 +104,14 @@ export function Slot({ slot, url, focused }: SlotProps) {
       </view-header>
       <SlotHeaderContext.Provider value={header}>
         {render.kind === 'view' ? (
-          <render.Component data={render.data} loc={render.loc} header={header} />
+          <render.Component
+            key={Nav.unparse_url(render.loc)}
+            data={render.data}
+            loc={render.loc}
+            header={header}
+          />
         ) : render.kind === 'error' ? (
-          <ErrorView message={render.message} location={render.location} />
+          <ErrorView key={render.location} message={render.message} location={render.location} />
         ) : null}
       </SlotHeaderContext.Provider>
     </view-slot>

@@ -3,14 +3,13 @@
 // Object.entries(statuses) which yields integer-like keys in ascending numeric-uid order, so the
 // reconcile loop (remove / update-in-place / insert-before / append) keeps children sorted
 // ascending by uid, keyed by `data-uid`, carrying `data-status`/`data-avatar`/`data-initial`.
-// The `initial` first-render flag and the always-false `redraw_user` guard (which reads a
-// *property* off the `statuses` METHOD, never the map) are replicated, NOT fixed. The loose
-// number-vs-string comparisons from the original are preserved via type assertions that erase to
-// the exact same runtime expressions.
+// The loose number-vs-string comparisons from the original are preserved via type assertions that
+// erase to the exact same runtime expressions.
 import type { User } from '../data/types'
 import { Lp, setStatusUpdateUser } from './socket'
 import { avatar_url } from './draw'
 import { Nav } from './nav'
+import { isUserBlocked, promptBlockUser } from './block'
 
 // todo: we should probably disconnect uhh
 // - other user's status's display
@@ -41,35 +40,51 @@ export class StatusDisplay {
       const stx = ste[j]
       const ch = chs[i]
       const ex_uid = +(ch.dataset.uid as string)
-      if (j >= ste.length || !(ex_uid >= (stx[0] as unknown as number))) {
+      const uid = +stx[0]
+      if (j >= ste.length || !(ex_uid >= uid)) {
         ch.remove()
         //log = "remove "+ex_uid
       } else {
-        if (ex_uid == (stx[0] as unknown as number)) {
+        if (ex_uid == uid) {
           // now try to update the icon if changed: todo: improve
-          const user = StatusDisplay.get_user(stx[0])
-          if (ch.dataset.avatar != user.avatar) ch.replaceWith(this.draw_avatar(...stx))
-          else ch.dataset.status = stx[1]
+          const user = StatusDisplay.get_user(uid)
+          if (!user) {
+            ch.remove()
+          } else if (ch.dataset.avatar != user.avatar) {
+            const node = this.draw_avatar(...stx)
+            if (node) ch.replaceWith(node)
+            else ch.remove()
+          } else {
+            ch.dataset.status = stx[1]
+            // Avatar is unchanged so the element is reused in place — but the block list may have
+            // changed (block/unblock never alters the avatar), so re-sync the sepia marker here.
+            ch.classList.toggle('blocked', isUserBlocked(uid))
+          }
         } else {
           // ex_uid > stx[0]
           //log = stx[0]+" insert before "+ex_uid
-          ch.before(this.draw_avatar(...stx))
-          i--
+          const node = this.draw_avatar(...stx)
+          if (node) {
+            ch.before(node)
+            i--
+          }
         }
         j++
       }
     }
     for (; j < ste.length; j++) {
       //log = ste[j][0]+" append"
-      elem.append(this.draw_avatar(...ste[j]))
+      const node = this.draw_avatar(...ste[j])
+      if (node) elem.append(node)
     }
     this.initial = false
   }
 
-  draw_avatar(uid: string, status: string): HTMLAnchorElement {
+  draw_avatar(uid: string, status: string): HTMLAnchorElement | null {
     //log = "draw avatar "+uid+" in "+this.id
     const user = StatusDisplay.get_user(uid)
-    const e = StatusDisplay.draw_avatar(user, status)
+    if (!user) return null
+    let e = StatusDisplay.draw_avatar(user, status)
     if (this.initial) e.dataset.initial = ''
     return e
   }
@@ -84,9 +99,7 @@ export class StatusDisplay {
 
   // when a user's avatar etc. changes
   redraw_user(user: User): void {
-    // NOTE (parity): `this.statuses` is the METHOD, not the map — indexing it by uid is always
-    // undefined, so this guard is permanently false. Kept exactly as the original bug.
-    if ((this.statuses as unknown as Record<number, unknown>)[user.id]) {
+    if (this.statuses()[user.id]) {
       //log = 'redraw user?'
       this.redraw()
     }
@@ -99,10 +112,9 @@ export class StatusDisplay {
   }
 
   // lookup a user from the cache
-  static get_user(id: string | number): User {
-    const user = Lp.users[~(id as unknown as number)]
-    if (!user) throw new TypeError('can\'t find status user ' + id)
-    return user
+  static get_user(id: string | number): User | undefined {
+    const num = typeof id === 'string' ? +id : id
+    return Lp.users[~num]
   }
 
   // called during `user_event` (i.e. when a user is edited)
@@ -137,6 +149,8 @@ export class StatusDisplay {
     e.dataset.uid = String(user.id)
     e.dataset.avatar = user.avatar
     e.dataset.status = status
+    e.onclick = (ev) => promptBlockUser(ev, { id: user.id, username: user.username, avatar: user.avatar })
+    if (isUserBlocked(user.id)) e.classList.add('blocked')
     /*if (status == "idle")
 			e.classList.add('status-idle')*/
     return e

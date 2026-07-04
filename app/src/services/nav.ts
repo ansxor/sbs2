@@ -1,9 +1,12 @@
 // L5a — hash routing (ports navigate.js's `Nav` namespace + link interception;
 // ARCHITECTURE §6/§10).
 //
-// The vanilla `ViewSlot` class is decomposed: a slot is now a plain `SlotDescriptor = {url}`,
-// React (L5b Slots.tsx) renders one `<Slot key={url}>` per slot, and the per-slot load
-// lifecycle lives in L5b's useViewLifecycle. `Nav` here owns exactly the URL truth: the
+// The vanilla `ViewSlot` class is decomposed: a slot is now a plain `SlotDescriptor = {id, url}`,
+// React (L5b Slots.tsx) renders one `<Slot key={slot.id}>` per slot, and the per-slot load
+// lifecycle lives in L5b's useViewLifecycle. Keying by stable slot id (not url) means a url
+// change updates the `url` prop without remounting — the old render stays visible until the
+// new one is ready, matching navigate.js's handle_view2 where switch_view runs post-request.
+// `Nav` here owns exactly the URL truth: the
 // `parse_url`/`unparse_url` grammar (verbatim), the slots array, history push/replaceState,
 // the global `#`-link interception, and an external store (subscribe/getSlots) React reads.
 //
@@ -38,6 +41,7 @@ const slots: SlotDescriptor[] = []
 let snapshot: SlotDescriptor[] = slots.slice()
 const listeners = new Set<() => void>()
 let active_editor: unknown = null
+let next_slot_id = 0
 
 // ---- injected sinks (wired by L6/L8; no-ops until then) ---------------------------------
 let closeFullscreen: () => void = () => {}
@@ -63,7 +67,7 @@ function notify(): void {
 // Was `new ViewSlot()`: a fresh empty slot that grabs focus if nothing is focused yet
 // (ViewSlot's constructor did `if (!Nav.focused) this.set_focus()`).
 function create_slot(): SlotDescriptor {
-  const slot: SlotDescriptor = { url: '' }
+  const slot: SlotDescriptor = { id: ++next_slot_id, url: '' }
   if (!Nav.focused) Nav.focused = slot
   return slot
 }
@@ -201,8 +205,9 @@ export const Nav: NavApi = {
   },
 
   // navigate.js:381 — the router core. Reconcile slots against a "~"-joined fragment,
-  // canonicalize each url, replaceState the canonical address, then notify React (which
-  // reloads only the slots whose url string changed, via url-keyed <Slot> memoization).
+  // canonicalize each url, replaceState the canonical address, then notify React. Each slot
+  // has a stable id, so a url change updates the existing <Slot>'s prop (no remount); the old
+  // render stays visible until the new view loads (matching navigate.js's handle_view2).
   update_from_fragment(fragment: string): void {
     const urls = fragment ? fragment.split('~') : []
     for (let i = 0; i < urls.length; i++) {
@@ -280,6 +285,11 @@ document.addEventListener(
     }
 
     if (!href.startsWith('#')) return
+    // Alt-click is reserved for the block/ignore feature (services/block.ts). This handler runs
+    // in the capture phase on `document`, so stopPropagation() below would swallow the click
+    // before the link's own onclick (promptBlockUser/promptBlockRoom) ever fires in the target
+    // phase. Bail early on Alt so the block handler owns the click and preventDefaults navigation.
+    if ((ev as MouseEvent).altKey) return
     ev.preventDefault()
     ev.stopPropagation()
     // find nearest slot if we're inside one, otherwise use focused slot

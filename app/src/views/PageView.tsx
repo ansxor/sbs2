@@ -528,8 +528,9 @@ function PageView({ data, header }: ViewComponentProps): React.JSX.Element {
     if (lost != null) textarea.value = lost
 
     // Render: header (title + links)
+    const header_links: Node[] = []
     header.set_entity_title(page)
-    header.add_header_links(
+    header_links.push(
       header_link('📜️', 'logs', '#comments/' + page.id + '?r'),
       header_link('✏️', 'edit', '#editpage/' + page.id),
       header_link('🗂️', 'childs', '#category/' + page.id),
@@ -539,8 +540,9 @@ function PageView({ data, header }: ViewComponentProps): React.JSX.Element {
       if (page.values.share) href = `${Req.server_url}/share/${page.hash}`
       else if (parent && parent.values.share && parent.literalType === 'resource')
         href = `${Req.server_url}/share/${parent.hash}/${page.hash}`
-      if (href) header.add_header_links(header_link('🌐', 'blog', href, '_blank'))
+      if (href) header_links.push(header_link('🌐', 'blog', href, '_blank'))
     }
+    header.add_header_links(...header_links)
 
     // Render: merge chain users into Lp.users (before UserList's StatusDisplay redraws — its
     // useEffect runs after this layout effect), set the watch checkbox.
@@ -601,8 +603,10 @@ function PageView({ data, header }: ViewComponentProps): React.JSX.Element {
       container.removeEventListener('input', r)
       root.removeEventListener('message_control', on_mce)
       if (Nav.view() === editorHandle.current) setActiveEditor(null)
+      for (const link of header_links) (link as ChildNode).remove()
     }
-    // Run exactly once on mount — every dependency is a first-render-stable value/ref.
+    // Runs once per mount. The Slot keys the rendered Component by location, so a navigation
+    // remounts the view and this effect runs again with the new page's data.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

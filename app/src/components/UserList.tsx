@@ -17,6 +17,8 @@ import { useEffect, useRef } from 'react'
 import type { CSSProperties } from 'react'
 import { StatusDisplay } from '../services/status-display'
 import { Events } from '../services/events'
+import { Lp } from '../services/socket'
+import { subscribe as subscribeBlocks } from '../services/block'
 import type { User } from '../data/types'
 
 // Ref-count of mounted UserLists that announce a presence status, keyed by room id. This replaces
@@ -67,7 +69,17 @@ export function UserList({ id, status, className = 'userlist', style }: UserList
       display.redraw_user(user)
     })
 
+    // The status was just queued by set_status; flush it now so the server sees the change
+    // immediately rather than only when the next view triggers a flush on unmount.
+    Lp.flush_statuses()
+
+    // Redraw avatars when the block list changes so the sepia overlay updates.
+    const unsubscribeBlocks = subscribeBlocks(() => {
+      display.redraw()
+    })
+
     return () => {
+      unsubscribeBlocks()
       Events.destroy(view)
       if (status !== undefined) {
         announce_counts[id] = (announce_counts[id] || 1) - 1
@@ -78,6 +90,8 @@ export function UserList({ id, status, className = 'userlist', style }: UserList
           display.set_status(null as unknown as string)
         }
       }
+      // Flush the released status immediately rather than waiting for the next view transition.
+      Lp.flush_statuses()
     }
   }, [id, status])
 

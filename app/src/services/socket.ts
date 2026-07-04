@@ -45,6 +45,10 @@ export function setStatusUpdateUser(fn: StatusUpdateUser | null): void {
   statusUpdateUser = fn
 }
 
+// Tracks WebSockets that fired an error event so onclose can report whether the close was
+// caused by an error. Replaces the original's ad-hoc `_got_error` property on the socket object.
+const errorSockets = new WeakSet<WebSocket>()
+
 // Custom-Error stack trimming from src/fill.js:32 (Error.prototype.trim_stack). NOT ported to the
 // global Error prototype; reproduced locally. On V8 (Error.captureStackTrace present) it is a no-op,
 // matching the original exactly.
@@ -156,7 +160,7 @@ export const Lp: LpApi = {
   online_change(): boolean {
     const online = Object.assign(Object.create(null), this.statuses[0])
     for (const pid in this.statuses) {
-      if ((pid as any) != 0) {
+      if (pid !== '0') {
         const map = this.statuses[pid]
         for (const uid in map) {
           if (map[uid] == 'active' && online[uid] == undefined) online[uid] = 'idle'
@@ -176,26 +180,53 @@ export const Lp: LpApi = {
     Object.assign(this.statuses, statuses)
     Object.assign(this.users, objects.user)
 
+    // Server-generated userlist responses may be produced before our pending setuserstatus has
+    // been applied, so re-apply our own statuses locally to keep the current user visible.
+    if (Req.uid != null) {
+      for (const id in this.my_statuses) {
+        const pid = +id
+        const value = this.my_statuses[id]
+        if (value == null) continue
+        if (!this.statuses[pid]) this.statuses[pid] = Object.create(null)
+        this.statuses[pid][~Req.uid] = value
+      }
+    }
+
     const li = Events.userlist
 
     if (this.online_change()) li.fire_id(0)
 
     for (const pid in statuses) {
-      if ((pid as any) != 0) li.fire_id(+pid)
+      if (pid !== '0') li.fire_id(+pid)
     }
   },
 
   set_status(id, value) {
     this.my_statuses[id] = value
     this.my_status_queue[id] = value
+    // Optimistically reflect our own status locally so userlists render the current user
+    // immediately, rather than waiting for the server's userlist round-trip. Only do this when
+    // the current user record is already in Lp.users, otherwise StatusDisplay.get_user crashes.
+    if (Req.uid != null && Lp.users[~Req.uid]) {
+      if (!this.statuses[id]) this.statuses[id] = Object.create(null)
+      if (value != null) this.statuses[id][~Req.uid] = value
+      else delete this.statuses[id][~Req.uid]
+      if (this.online_change()) Events.userlist.fire_id(0)
+      if (id !== 0) Events.userlist.fire_id(id)
+    }
   },
   flush_statuses(callback = null) {
     // this loop runs ONCE, only if the status_queue is not empty
     for (const key in this.my_status_queue) {
       void key
-      this.request({ type: 'setuserstatus', data: this.my_status_queue }, () => {
-        // messy..
-        this.my_status_queue = Object.create(null)
+      // Snapshot the queue so a status change made while this request is in flight isn't lost
+      // when the response clears the queue.
+      const data = Object.assign(Object.create(null), this.my_status_queue)
+      this.request({ type: 'setuserstatus', data }, () => {
+        // Only remove entries whose value is still what we sent; changed values must be resent.
+        for (const k in data) {
+          if (this.my_status_queue[k] === data[k]) delete this.my_status_queue[k]
+        }
         callback && callback()
       })
       break // important
@@ -360,13 +391,13 @@ export const Lp: LpApi = {
     this.websocket.onerror = ({ target }) => {
       console.warn('websocket error')
       this.fails++
-      ;(target as any)._got_error = true //hack
+      errorSockets.add(target as WebSocket)
     }
 
     this.websocket.onclose = ({ code, reason, wasClean, target }) => {
       console.log('ws closed', code, reason, wasClean)
       let desc
-      if ((target as any)._got_error) desc = 'websocket closed:'
+      if (errorSockets.has(target as WebSocket)) desc = 'websocket closed:'
       else if (wasClean) desc = 'websocket closed (clean).'
       else desc = 'websocket closed.'
       print(desc + ' ' + code + ' ' + reason)

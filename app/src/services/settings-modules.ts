@@ -15,17 +15,102 @@
 // original owning modules exposed. This module imports those modules; they no longer import
 // Settings for registration (only for value reads, where they still do).
 
-import type { SettingDescriptor } from '../data/types'
+import type { Id, SettingDescriptor, User } from '../data/types'
 import { Settings } from './settings'
 import { Scroller } from './scroller'
 import { toggle_observer } from './lazy-image'
 import { Apx } from './apx'
+import { AVATAR_SIZE, avatar_url } from './draw'
+import { Req } from './request'
+import {
+  getBlockedRooms,
+  getBlockedUsers,
+  subscribe as subscribeBlocks,
+  unblockRoom,
+  unblockUser,
+} from './block'
 
 // `options_labels` is a SettingsForm (L6) presentation extension carried alongside SettingDescriptor
 // — not on the frozen type, but read by SettingsForm via a cast. Kept here so the descriptors stay
 // self-describing.
 export interface SelectSettingDescriptor extends SettingDescriptor {
   options_labels?: string[]
+}
+
+function blockedRow(
+  imgSrc: string,
+  name: string,
+  onRemove: () => void,
+): HTMLElement {
+  const row = document.createElement('div')
+  row.className = 'blocked-row'
+
+  const img = document.createElement('img')
+  img.className = 'item avatar'
+  img.src = imgSrc
+  img.alt = ''
+
+  const title = document.createElement('span')
+  title.className = 'entity-title pre'
+  title.textContent = name
+
+  const spacer = document.createElement('span')
+  spacer.className = 'FILL'
+
+  const remove = document.createElement('button')
+  remove.textContent = 'X'
+  remove.title = 'Unblock'
+  remove.onclick = onRemove
+
+  row.append(img, title, spacer, remove)
+  return row
+}
+
+function renderBlockedList(row: HTMLElement, elem: HTMLElement, label: HTMLElement): void {
+  elem.remove()
+  label.textContent = 'Blocked:'
+  // Stack the label above a full-width table instead of the default side-by-side settings layout.
+  row.classList.add('blocked-setting')
+
+  const list = document.createElement('div')
+  list.className = 'blocked-list'
+  row.append(list)
+
+  const rebuild = (): void => {
+    list.textContent = ''
+    const users = getBlockedUsers()
+    const rooms = getBlockedRooms()
+    if (users.length === 0 && rooms.length === 0) {
+      const empty = document.createElement('div')
+      empty.className = 'blocked-row'
+      empty.textContent = 'No users or rooms blocked.'
+      list.append(empty)
+      return
+    }
+    for (const user of users) {
+      // The stored `avatar` is a raw image hash, not a URL — resolve it via avatar_url (which also
+      // handles the empty/'0' → default-avatar fallback), matching how avatars render elsewhere.
+      list.append(
+        blockedRow(
+          avatar_url({ avatar: user.avatar } as User),
+          user.username,
+          () => unblockUser(user.id),
+        ),
+      )
+    }
+    for (const room of rooms) {
+      // `thumbnail` is likewise a raw image hash; resolve it the same way content_label does.
+      const thumb = room.thumbnail
+        ? Req.image_url(room.thumbnail as unknown as Id, AVATAR_SIZE, true)
+        : 'resource/page-resource.png'
+      list.append(blockedRow(thumb, room.name, () => unblockRoom(room.id)))
+    }
+  }
+
+  rebuild()
+  // The SettingsForm island is torn down only when the whole Sidebar unmounts, which is
+  // effectively never; still attach the cleanup so the row can be disposed correctly.
+  ;(row as HTMLElement & { __unblock?: () => void }).__unblock = subscribeBlocks(rebuild)
 }
 
 // Order mirrors the original import-evaluation order: lazy-image (draw.js/view.js) → scroller
@@ -104,6 +189,13 @@ export const MODULE_SETTINGS: SelectSettingDescriptor[] = [
     label: 'Chat Enter Key',
     type: 'select',
     options: ['submit', 'newline', 'submit, strip trailing', 'newline, strip trailing'],
+  },
+  {
+    name: 'blocked',
+    label: 'Blocked',
+    type: 'text',
+    order: Infinity,
+    render: renderBlockedList,
   },
 ]
 

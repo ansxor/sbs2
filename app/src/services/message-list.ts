@@ -23,6 +23,7 @@ import { Lp } from './socket'
 import { convert } from './markup'
 import { avatar_url, time_string, censorSpoilerText, recalc_image_scale } from './draw'
 import { Settings } from './settings'
+import { isUserBlocked, subscribe as subscribeBlocks } from './block'
 
 // messages.js:3 — spoiler-preview censor. Called via "".startsWith.call(text,…) to tolerate a
 // non-string; the `$1` in the replacement string IS the capture group ((\[.*?\])? = the optional
@@ -174,6 +175,8 @@ export class MessageList {
   next!: ListNode
   prev!: ListNode
   max_parts = 500
+  // Cleanup for the reactive block-list subscription installed below.
+  unsubscribeBlocks?: () => void
 
   constructor(element: HTMLElement, pid: Id, _edit?: boolean) {
     this.$list = element
@@ -195,7 +198,21 @@ export class MessageList {
       { capture: true },
     )
 
+    // Hide/show existing messages when the block list changes.
+    this.unsubscribeBlocks = subscribeBlocks(() => {
+      this.updateBlockedVisibility()
+    })
+
     Object.seal(this)
+  }
+
+  // Toggle the 'blocked' class on every rendered message-block to match the current user block list.
+  updateBlockedVisibility(): void {
+    for (const part of this.parts.values()) {
+      const block = (part as Part).elem.closest('message-block')
+      if (!block) continue
+      block.classList.toggle('blocked', isUserBlocked((part as Part).data.createUserId))
+    }
   }
 
   check_merge(top: Message, bottom: Message): boolean {
@@ -658,6 +675,7 @@ export class MessageList {
     const module = comment.module
 
     e.dataset.uid = String(comment.createUserId)
+    if (isUserBlocked(comment.createUserId)) e.classList.add('blocked')
     if (module === null) {
       const avatar = tmpl_avatar()
       e.prepend(avatar)

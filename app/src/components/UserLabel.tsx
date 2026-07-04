@@ -5,6 +5,7 @@
 // so this img is emitted inline rather than through <Avatar> to preserve that exactly.
 import type { User } from '../data/types'
 import { avatar_url } from '../services/draw'
+import { promptBlockUser } from '../services/block'
 
 export function UserLabel({
   user,
@@ -16,7 +17,12 @@ export function UserLabel({
   const img = <img className="item avatar" width={50} height={50} src={avatar_url(user)} />
   const name = <span className="entity-title pre">{user.username}</span>
   return (
-    <a tabIndex={-1} className="bar rem1-5 user-label" href={'#user/' + user.id}>
+    <a
+      tabIndex={-1}
+      className="bar rem1-5 user-label"
+      href={'#user/' + user.id}
+      onClick={(ev) => promptBlockUser(ev, { id: user.id, username: user.username, avatar: user.avatar })}
+    >
       {reverse ? (
         <>
           {name}

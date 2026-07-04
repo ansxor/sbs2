@@ -6,6 +6,7 @@ import type { Content, EntityList, Id, User } from '../data/types'
 import { CODES, Entity } from '../data/entity'
 import { Req } from './request'
 import { AVATAR_SIZE, avatar_url } from './draw'
+import { promptBlockRoom, promptBlockUser, roomBlockProps } from './block'
 
 // draw.js:13-48. Icon+title label for a content entity. Returns an <entity-label> whose child
 // span carries the chosen background image (thumbnail/type icon + category/hidden overlays)
@@ -62,6 +63,7 @@ function user_label(user: User, reverse = false): HTMLAnchorElement {
   ;(e.firstChild as HTMLImageElement).src = avatar_url(user)
   ;(e.lastChild as HTMLSpanElement).textContent = user.username
   if (reverse) e.prepend(e.lastChild as ChildNode) // w
+  e.onclick = (ev) => promptBlockUser(ev, { id: user.id, username: user.username, avatar: user.avatar })
   return e
 }
 
@@ -79,10 +81,11 @@ export function category_item(
   const placeholder = document.createElement('span')
   e.append(link, placeholder)
 
-  ;(e.firstChild as HTMLAnchorElement).href = '#category/' + content.id
+  link.href = '#category/' + content.id
   const label = content_label(content, isCategory)
-  ;(e.firstChild as HTMLAnchorElement).append(...label.childNodes) //hack...
+  link.append(...label.childNodes) //hack...
+  link.onclick = (ev) => promptBlockRoom(ev, roomBlockProps(content))
   let author = user[~content.createUserId]
-  if (author) (e.lastChild as ChildNode).replaceWith(user_label(author))
+  if (author) placeholder.replaceWith(user_label(author))
   return e
 }

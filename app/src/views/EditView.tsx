@@ -469,8 +469,8 @@ function EditView({ data, loc, header }: ViewComponentProps): React.JSX.Element 
       }
       if (Nav.view() === editorObj) setActiveEditor(null)
     }
-    // data/loc/header are stable for the slot's lifetime (Slot is keyed by url); the callbacks are
-    // stable. Runs exactly once per mount.
+    // data/loc/header are stable for a view's lifetime (Slot keys the rendered Component by loc,
+    // so a navigation remounts); the callbacks are stable. Runs exactly once per mount.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

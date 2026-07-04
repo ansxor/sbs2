@@ -85,6 +85,7 @@ export function MessageListView({
       // `<message-list>` container itself, disposing the controller's DOM and its
       // `message_control` capture listener with it.
       Events.destroy(view)
+      list.unsubscribeBlocks?.()
     }
     // Stable identity deps only — never the callbacks (kept in refs above).
   }, [pageId, edit])

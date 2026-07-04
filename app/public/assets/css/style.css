@@ -1249,3 +1249,72 @@ view-slot:only-of-type > view-header .slot-close {
 		-webkit-user-select: none;
 	}
 }
+
+/* block/ignore feature */
+.userlist a.blocked img.avatar {
+	filter: sepia(1);
+}
+
+message-block.blocked {
+	display: none;
+}
+
+.activity-page.blocked {
+	display: none;
+}
+
+/* The Blocked settings row stacks its label above a full-width table, overriding the default
+   side-by-side (~49% each) settings-row layout. */
+.local-settings > .blocked-setting > * {
+	width: 100%;
+	flex-basis: 100%;
+	min-width: 0;
+}
+
+.blocked-list {
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	border: 1px solid var(--T-border-color);
+}
+
+/* [AVATAR/THUMBNAIL][USERNAME][SPACER][X remove] — one flex row per blocked entity, with
+   alternating white/gray grid rows (--T-bg / --T-box-bg from theme.css). */
+.blocked-row {
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+	padding: 2px 4px;
+	min-height: 1.75rem;
+}
+
+.blocked-row:nth-child(odd) {
+	background-color: var(--T-bg);
+}
+
+.blocked-row:nth-child(even) {
+	background-color: var(--T-box-bg);
+}
+
+.blocked-row > .FILL {
+	min-width: 0;
+}
+
+.blocked-row img.avatar {
+	width: 26px;
+	height: 26px;
+	object-fit: cover;
+	flex: none;
+}
+
+.blocked-row .entity-title {
+	min-width: 0;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.blocked-row button {
+	flex: none;
+	padding: 0 0.4rem;
+}

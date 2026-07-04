@@ -41,6 +41,13 @@ import { avatar_url, censorSpoilerText } from '../services/draw'
 import { setPrintSink, sidebar_debug } from '../services/sidebar-log'
 import { setImagesSidebarTabSelect } from '../services/images-sidebar-tab'
 import { onMeAvatar } from '../services/me-avatar'
+import {
+  isRoomBlocked,
+  isUserBlocked,
+  promptBlockRoom,
+  roomBlockProps,
+  subscribe as subscribeBlocks,
+} from '../services/block'
 import type { Content, Message, User } from '../data/types'
 
 // ---------------------------------------------------------------------------------------------
@@ -148,6 +155,7 @@ export function Sidebar({ containerRef }: SidebarProps): React.JSX.Element {
 
     d.dataset.id = String(comment.id)
     d.dataset.pid = String(comment.contentId)
+    d.dataset.uid = String(comment.createUserId)
 
     // for bridge messages, display nicknames instead of username
     const author = comment.Author
@@ -172,6 +180,8 @@ export function Sidebar({ containerRef }: SidebarProps): React.JSX.Element {
       limitMessages()
       scrollerRef.current!.print((inner) => {
         for (const c of comments) {
+          // hide messages from blocked users/rooms; still process deletions of stale entries
+          if (!c.deleted && (isUserBlocked(c.createUserId) || isRoomBlocked(c.contentId))) continue
           const old = displayedIds.current[c.id]
           if (c.deleted) {
             if (old) {
@@ -204,6 +214,22 @@ export function Sidebar({ containerRef }: SidebarProps): React.JSX.Element {
     },
     [drawComment, limitMessages],
   )
+
+  // Remove already-displayed sidebar messages whose author or room is now blocked. The
+  // displayMessages `continue` only stops NEW blocked messages from being added; this sweeps the
+  // ones already on screen when a block is added, and runs on every block-list change.
+  const removeBlockedMessages = useCallback((): void => {
+    for (const key in displayedIds.current) {
+      const el = displayedIds.current[key]
+      const uid = Number(el.dataset.uid)
+      const pid = Number(el.dataset.pid)
+      if (isUserBlocked(uid) || isRoomBlocked(pid)) {
+        el.remove()
+        delete displayedIds.current[key]
+        messageCount.current--
+      }
+    }
+  }, [])
 
   // sidebar.js:116 print — append each arg to the console via sidebar_debug (smooth-scrolled).
   const printSink = useCallback(
@@ -305,6 +331,7 @@ export function Sidebar({ containerRef }: SidebarProps): React.JSX.Element {
           bar.setAttribute('role', 'listitem')
           bar.className += ' bar rem1-5 search-page ellipsis'
           bar.href = Nav.entity_link(item)
+          bar.onclick = (ev) => promptBlockRoom(ev, roomBlockProps(item))
           results.append(bar)
           bar.tabIndex = first ? 0 : -1
           if (first) bar.focus()
@@ -388,6 +415,10 @@ export function Sidebar({ containerRef }: SidebarProps): React.JSX.Element {
     redrawMyAvatar()
     return onMeAvatar(redrawMyAvatar)
   }, [redrawMyAvatar])
+
+  // Sweep already-displayed messages when a user/room is blocked (or unblocked → next batch
+  // repaints them). Sidebar never unmounts, so this subscription lives for the app's lifetime.
+  useEffect(() => subscribeBlocks(removeBlockedMessages), [removeBlockedMessages])
 
   // ---- tab defs (sidebar.js:38) --------------------------------------------------------------
   const userLabel: ReactNode = auth ? (

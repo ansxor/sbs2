@@ -252,6 +252,10 @@ export function SettingsForm({ selectTab, output }: SettingsFormProps): React.JS
         }),
       )
     return () => {
+      for (const row of host.children) {
+        const cleanup = (row as HTMLElement & { __unblock?: () => void }).__unblock
+        if (typeof cleanup === 'function') cleanup()
+      }
       host.textContent = ''
     }
   }, [])

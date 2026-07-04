@@ -7,6 +7,7 @@
 import type { Content, EntityList, User } from '../data/types'
 import { ContentIcon } from './EntityLabel'
 import { UserLabel } from './UserLabel'
+import { promptBlockRoom, roomBlockProps } from '../services/block'
 
 export function CategoryItem({
   content,
@@ -20,7 +21,11 @@ export function CategoryItem({
   const author = user[~content.createUserId]
   return (
     <>
-      <a className="bar rem1-5 category-page" href={'#category/' + content.id}>
+      <a
+        className="bar rem1-5 category-page"
+        href={'#category/' + content.id}
+        onClick={(ev) => promptBlockRoom(ev, roomBlockProps(content))}
+      >
         <ContentIcon content={content} isCategory={isCategory} />
       </a>
       {author ? <UserLabel user={author} /> : <span />}

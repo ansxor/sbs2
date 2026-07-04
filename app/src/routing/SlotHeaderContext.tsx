@@ -4,9 +4,11 @@
 // Each Slot renders a `<view-header>` with three imperatively-managed nodes ($header_extra,
 // $title, $header_buttons) and builds a SlotHeaderApi bound to their refs. The api is provided
 // via SlotHeaderContext and passed to the route Component as a prop; the Component (or its
-// descendants via useSlotHeader) fills the header. Because the Slot is keyed by url string, a
-// navigation remounts the Slot with a fresh (empty) header — reproducing the old switch_view()
-// `$title.fill()/$header_buttons.fill()/$header_extra.fill()` clear-on-every-nav behavior.
+// descendants via useSlotHeader) fills the header. The Slot persists across navigations (keyed by
+// slot id); the rendered Component is keyed by location so a navigation remounts it with a fresh
+// view. Each view replaces the title itself and removes its own header links on unmount, matching
+// the old switch_view() clear-on-every-nav behavior while keeping the previous title visible during
+// loading.
 //
 // React renders those three nodes with NO JSX children, so React never touches the children the
 // api appends into them (the standard imperative-container pattern).

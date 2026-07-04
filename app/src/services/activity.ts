@@ -34,6 +34,7 @@ import { Lp } from './socket'
 import { Nav } from './nav'
 import { content_label } from './draw-dom'
 import { avatar_url, time_ago_string } from './draw'
+import { isRoomBlocked, promptBlockRoom, roomBlockProps, subscribe as subscribeBlocks } from './block'
 
 // activity.js:3-7. Ordering key: seconds *before* 2015-01-01T00:00:00Z (1420070400000ms),
 // truncated (`|0`). Newer dates → smaller (more negative) → sort FIRST via CSS flex `order`.
@@ -109,9 +110,17 @@ class ActivityItem {
     if (this.content) {
       this.$root.dataset.pid = String(this.content.id)
       this.$root.href = Nav.entity_link(this.content)
+      this.$root.onclick = (ev) => promptBlockRoom(ev, roomBlockProps(this.content))
       this.redraw_page()
+      this.update_blocked()
     }
     this.parent.$container.append(this.$root)
+  }
+
+  // Hide this row entirely when its room is blocked (CSS `.activity-page.blocked { display:none }`).
+  // Called on build and re-run for every item whenever the block list changes.
+  update_blocked(): void {
+    this.$root.classList.toggle('blocked', isRoomBlocked(this.content.id))
   }
 
   // reproduces ActivityItem.template (full) / template_simple (watch) — same tags/classes/attrs,
@@ -296,6 +305,13 @@ interface CatTree {
 // activity.js:164-258.
 const normal = new ActivityContainer(false)
 const watch = new ActivityContainer(true)
+
+// Re-evaluate every activity/watch row's blocked state when the block list changes, so blocking a
+// room hides its row from the sidebar immediately (and unblocking brings it back).
+subscribeBlocks(() => {
+  for (const item of Object.values(normal.items)) item.update_blocked()
+  for (const item of Object.values(watch.items)) item.update_blocked()
+})
 
 export const Act = {
   normal,

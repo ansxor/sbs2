@@ -27,6 +27,7 @@ import { CategoryItem } from '../components/CategoryItem'
 import { ContentIcon } from '../components/EntityLabel'
 import { UserLabel } from '../components/UserLabel'
 import { TimeAgo } from '../components/TimeAgo'
+import { promptBlockRoom, roomBlockProps } from '../services/block'
 import { MarkupContent } from '../islands/MarkupContent'
 
 // CategoryView.psize (category.js:106) — page size for the child-content list.
@@ -183,10 +184,11 @@ function CategoryView({ data, loc, header }: ViewComponentProps): React.JSX.Elem
     return () => {
       for (const l of links) (l as ChildNode).remove()
     }
-    // data + loc are stable for a slot's lifetime (Slot is keyed by url) and fully determine
-    // is_fake/page/page_id, so this runs once per mount (StrictMode's second pass re-appends after
-    // the cleanup — no duplication). `page` is intentionally not a dep: it is a fresh fake_category
-    // object each render but deterministic from `loc`, so recomputing it wouldn't change the header.
+    // data + loc are stable for a view's lifetime (Slot keys the rendered Component by loc, so a
+    // navigation remounts) and fully determine is_fake/page/page_id, so this runs once per mount
+    // (StrictMode's second pass re-appends after the cleanup — no duplication). `page` is
+    // intentionally not a dep: it is a fresh fake_category object each render but deterministic from
+    // `loc`, so recomputing it wouldn't change the header.
   }, [data, loc, header])
 
   // category.js:72 — author for the info pane.
@@ -222,7 +224,11 @@ function CategoryView({ data, loc, header }: ViewComponentProps): React.JSX.Elem
           <>
             {/* category.js:93 — category_item(parent, user, true) with "Parent ⮭" prepended into
                 the <a> (which holds content_label's inner icon span). */}
-            <a className="bar rem1-5 category-page" href={'#category/' + cparent.id}>
+            <a
+              className="bar rem1-5 category-page"
+              href={'#category/' + cparent.id}
+              onClick={(ev) => promptBlockRoom(ev, roomBlockProps(cparent))}
+            >
               {'Parent ⮭'}
               <ContentIcon content={cparent} isCategory={true} />
             </a>

@@ -171,6 +171,7 @@ export interface NavLocation {
 }
 
 export interface SlotDescriptor {
+  id: number
   url: string
 }
 

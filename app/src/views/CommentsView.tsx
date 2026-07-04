@@ -277,8 +277,10 @@ function CommentsComponent({ data, loc, header }: ViewComponentProps): React.JSX
 
   // Init: set the header title and, for a single-page search, the page link. The frozen
   // add_header_links takes prebuilt Nodes, so the old {href,label,icon} → <a> construction
-  // (navigate.js:66) moves here. Runs once (slot is url-keyed → header cleared on every nav).
+  // (navigate.js:66) moves here. Runs once per mount; the Slot keys the Component by location,
+  // so a navigation remounts the view.
   useLayoutEffect(() => {
+    const links: Node[] = []
     header.set_title('Chat Search')
     if (prep.pid) {
       const a = document.createElement('a')
@@ -291,7 +293,11 @@ function CommentsComponent({ data, loc, header }: ViewComponentProps): React.JSX
       icon.className = 'text-shadow'
       icon.append('📄️')
       a.prepend(icon)
+      links.push(a)
       header.add_header_links(a)
+    }
+    return () => {
+      for (const link of links) (link as ChildNode).remove()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
