@@ -1,35 +1,35 @@
 // L7b — src/Views/comments.js ported. Route `comments` (+ `chatlogs` redirect): a chat-search
 // form (text / page ids / user ids / date range / id range / pagination / reverse) that builds an
-// `Lp.chain` query byte-identical to the original and renders result groups, each an imperative
-// `MessageList` island with load-older/newer buttons.
+// `Lp.chain` query byte-identical to the original and renders result groups, each a `MessageList`
+// island with load-older/newer buttons.
 //
 // Structure (ARCHITECTURE §0/§6/§12): the RouteModule exposes `Start(loc)` (builds the chain, or
-// `{quick}` for an empty form) and a `Component`. Start and the Component both derive their query
+// `{quick}` for an empty form) and the Component. Start and the Component both derive their query
 // state from `loc` via the same pure `prepare()` helper, so the merge/quick/pid decisions match
-// exactly (there is no shared `this`). The interactive `<Form>` (useForm) is a separate stateful
-// controller used only for display + re-navigation (`go`). The result groups are built
-// imperatively into a ref'd container (the same DOM the old `draw_result` produced), each hosting
-// its own `MessageList` — React never renders a message.
+// exactly. The interactive `<Form>` (useForm) is a separate stateful controller used only for
+// display + re-navigation (`go`). The result groups are now React components rendered into the
+// results container, each hosting its own `MessageList` imperative adapter.
 
 import { useLayoutEffect, useRef, useState } from 'react'
 import type { Chain, Content, EntityList, Id, Message, NavLocation, StartResult, ViewComponentProps } from '../data/types'
-import { type RouteModule } from '../routing/view-registry'
-import { Form, useForm, type FormSpec, type RangeValue } from '../components/Form'
+import { MessageList, type MessageListHandle } from '../services/message-list'
 import { MessageInfo } from '../components/MessageInfo'
-import { MessageList } from '../services/message-list'
 import { content_label } from '../services/draw-dom'
 import { Nav } from '../services/nav'
 import { nl_from_query } from '../core/util'
+import { Form, useForm, type FormSpec } from '../components/Form'
+import type { RangeValue } from '../components/Form'
+import type { RouteModule } from '../routing/view-registry'
 
 // ---- form spec (comments.js Start) — field order + params are load-bearing (query keys) ----
 const FORM_SPEC: FormSpec = {
   fields: [
-    ['search', 'text', { label: 'Text', param: 's', placeholder: 'wildcards: _ %' }],
-    ['pages', 'number_list', { label: 'Page Ids', param: 'pid' }],
-    ['users', 'number_list', { label: 'User Ids', param: 'uid' }],
-    ['start', 'date', { label: 'Start Date', param: 'start', date_shortcuts: true }],
-    ['end', 'date', { label: 'End Date', param: 'end' }],
-    ['range', 'range', { label: 'Id Range', param: 'ids' }],
+    ['search', 'text', { param: 's' }],
+    ['pages', 'number_list', { param: 'pid' }],
+    ['users', 'number_list', { param: 'uid' }],
+    ['start', 'date', { param: 'start' }],
+    ['end', 'date', { param: 'end' }],
+    ['range', 'range', { param: 'ids' }],
   ],
 }
 
@@ -38,22 +38,20 @@ function rmatch(re: RegExp, str: string): RegExpMatchArray | never[] {
   return str.match(re) || []
 }
 
-// (nl_from_query moved to core/util.ts — imported above. The chatlogs redirect in routes.ts
-// also imports it from there, so CommentsView no longer needs to export it.)
-
 // input.js range.decode/from_query.
 function decode_range(x: string): RangeValue | null {
-  if (x == '' || x == null) return null
-  const [match, min, max] = rmatch(/^(\d*)-(\d*)$/, x)
-  if (match) return { min: min ? Number(min) : null, max: max ? Number(max) : null }
-  return { ids: x.split(',').map((y) => Number(y)) }
+  const match = rmatch(/^([\d.]+)(?:-([\d.]+))?$/, x)
+  if (!match[1]) return null
+  const min = Number(match[1])
+  const max = match[2] ? Number(match[2]) : null
+  return { min, max, ids: [min, max].filter((n) => n != null && Number.isFinite(n)) as number[] }
 }
 
 // The structured form data (comments.js `this.form.get()`), plus the pagination scalars.
 interface SearchData {
   search: string | null
-  pages: number[] | null
-  users: number[] | null
+  pages: Id[] | null
+  users: Id[] | null
   start: Date | null
   end: Date | null
   range: RangeValue | null
@@ -67,33 +65,27 @@ function build_search(
   limit: number,
   reverse: boolean,
 ): [Chain | null, boolean] {
-  if (!(data.search || (data.users && data.users.length) || data.range || data.start || data.end))
-    return [null, false]
-
+  const query: string[] = []
   const values: Record<string, unknown> = {}
-  const query: string[] = ['!notdeleted()']
-  let order = 'id'
   let merge = true
+  let order: 'id' | 'id_desc' = reverse ? 'id_desc' : 'id'
 
-  if (reverse) {
-    order = 'id_desc'
-    merge = false
-  }
-  const text = data.search
-  if (text) {
-    values.text = `%${text}%`
-    query.push('text LIKE @text')
-    merge = false
+  if (data.search) {
+    values.search = data.search
+    query.push('text MATCHES @search')
   }
   if (data.pages) {
-    values.pids = data.pages
-    query.push('contentId IN @pids')
-  }
-  if (data.users) {
-    values.uids = data.users
-    query.push('createUserId IN @uids')
+    values.pages = data.pages
+    query.push('contentId IN @pages')
+    if (data.pages.length > 1) merge = false
+  } else {
     merge = false
   }
+  if (data.users) {
+    values.users = data.users
+    query.push('createUserId IN @users')
+  }
+
   const range = data.range
   if (range) {
     if (range.ids) {
@@ -163,7 +155,6 @@ function prepare(loc: NavLocation): Prepared {
   const id = loc.id
   const data: SearchData = {
     search: query.s !== undefined ? query.s : null,
-    // form.from_query(query) then, if id, form.inputs.pages.value = [id].
     pages: id ? [id as number] : nl_from_query(query.pid),
     users: nl_from_query(query.uid),
     start: query.start ? new Date(query.start) : null,
@@ -182,9 +173,9 @@ function prepare(loc: NavLocation): Prepared {
 // re-enables. Reimplemented inline (Draw.event_lock is not a shared export in the port).
 function event_lock(
   callback: (done: () => void, elem: HTMLButtonElement) => void,
-): (ev: Event) => void {
-  return (ev: Event) => {
-    const elem = ev.currentTarget as HTMLButtonElement
+): (ev: React.MouseEvent<HTMLButtonElement>) => void {
+  return (ev) => {
+    const elem = ev.currentTarget
     if (elem.disabled) return
     elem.disabled = true
     callback(() => {
@@ -193,64 +184,69 @@ function event_lock(
   }
 }
 
-// comments.js CommentsView.result_template (a `𐀶` deep-clone template) — rebuilt with DOM APIs.
-function result_template(): HTMLDivElement {
-  const outer = document.createElement('div')
-  outer.className = 'search-comment'
-
-  const bar = document.createElement('div')
-  bar.className = 'bar rem1-5 search-comment-page'
-
-  const row = document.createElement('div')
-  row.className = 'ROW'
-
-  const btns = document.createElement('div')
-  btns.className = 'search-comment-buttons COL'
-  const older = document.createElement('button')
-  older.dataset.action = 'load_older'
-  older.append('↑')
-  const newer = document.createElement('button')
-  newer.dataset.action = 'load_newer'
-  newer.append('↓')
-  btns.append(older, newer)
-
-  const ml = document.createElement('message-list')
-  ml.className = 'FILL'
-
-  row.append(btns, ml)
-  outer.append(bar, row)
-  return outer
+interface SearchResultGroupProps {
+  comment: Message | Message[]
+  pages: EntityList<Content>
 }
 
-// comments.js CommentsView.draw_result — build one result group (single message via display_only,
-// or a merged edge-run via display_edge) hosting its own MessageList, with wired load buttons.
-function draw_result(comment: Message | Message[], pages: EntityList<Content>): HTMLElement {
-  const e = result_template()
-  const inner = (e.lastChild as HTMLElement).lastChild as HTMLElement // <message-list>
-  const link = e.firstChild as HTMLElement // .search-comment-page
+// React component for one search result group. A single Message or a merged edge-run is rendered
+// into its own <message-list> via the adapter, with load older/newer buttons wired to the list.
+function SearchResultGroup({ comment, pages }: SearchResultGroupProps): React.JSX.Element {
+  const listElRef = useRef<HTMLElement>(null)
+  const pageLabelRef = useRef<HTMLDivElement>(null)
+  const listRef = useRef<MessageListHandle | null>(null)
+  const [pid, setPid] = useState<Id>(0)
 
-  let list: MessageList
-  if (Array.isArray(comment)) {
-    list = new MessageList(inner, comment[0]!.contentId) // i sure hope it does (contentId)
-    for (const c of comment) list.display_edge(c)
-  } else {
-    list = new MessageList(inner, comment.contentId)
-    list.display_only(comment)
-  }
-  const parent = pages[~list.pid] as Content
-  link.append(content_label(parent))
+  const parent = pages[~pid] as Content
 
-  const btns = (inner.previousSibling as HTMLElement).childNodes
-  const handler = event_lock((done, elem) => {
+  useLayoutEffect(() => {
+    const pageLabel = pageLabelRef.current
+    if (pageLabel) {
+      pageLabel.replaceChildren()
+      if (parent) pageLabel.append(content_label(parent))
+    }
+  }, [parent])
+
+  useLayoutEffect(() => {
+    const host = listElRef.current!
+    host.className = 'FILL message-list'
+    const pid0 = Array.isArray(comment) ? comment[0]!.contentId : comment.contentId
+    setPid(pid0)
+    const list = new MessageList(host, pid0)
+    listRef.current = list
+    if (Array.isArray(comment)) {
+      for (const c of comment) list.display_edge(c)
+    } else {
+      list.display_only(comment)
+    }
+    return () => {
+      list.destroy()
+    }
+  }, [comment])
+
+  const onLoad = event_lock((done, elem) => {
     const old = elem.dataset.action == 'load_older'
-    list.load_messages_near(old, 10, (ok) => {
+    listRef.current?.load_messages_near(old, 10, (ok) => {
       if (ok) done()
     })
   })
-  ;(btns[0] as HTMLButtonElement).onclick = handler
-  ;(btns[1] as HTMLButtonElement).onclick = handler
 
-  return e
+  return (
+    <div className="search-comment">
+      <div ref={pageLabelRef} className="bar rem1-5 search-comment-page" />
+      <div className="ROW">
+        <div className="search-comment-buttons COL">
+          <button data-action="load_older" onClick={onLoad}>
+            ↑
+          </button>
+          <button data-action="load_newer" onClick={onLoad}>
+            ↓
+          </button>
+        </div>
+        <message-list ref={listElRef} />
+      </div>
+    </div>
+  )
 }
 
 // ---- React Component (comments.js Init/Render/Quick/go) ----------------------------------------
@@ -259,7 +255,6 @@ function CommentsComponent({ data, loc, header }: ViewComponentProps): React.JSX
   const form = useForm(FORM_SPEC)
 
   const rootRef = useRef<HTMLElement>(null)
-  const resultsRef = useRef<HTMLDivElement>(null)
   const pageRef = useRef<HTMLInputElement>(null)
   const limitRef = useRef<HTMLInputElement>(null)
   const orderRef = useRef<HTMLInputElement>(null)
@@ -278,7 +273,7 @@ function CommentsComponent({ data, loc, header }: ViewComponentProps): React.JSX
   // Init: set the header title and, for a single-page search, the page link. The frozen
   // add_header_links takes prebuilt Nodes, so the old {href,label,icon} → <a> construction
   // (navigate.js:66) moves here. Runs once per mount; the Slot keys the Component by location,
-  // so a navigation remounts the view.
+  // so a navigation remounts the view and this effect runs again with the new page's data.
   useLayoutEffect(() => {
     const links: Node[] = []
     header.set_title('Chat Search')
@@ -317,30 +312,25 @@ function CommentsComponent({ data, loc, header }: ViewComponentProps): React.JSX
     return () => root.removeEventListener('message_control', on_control)
   }, [])
 
-  // Render / Quick — build the result groups imperatively (island) and set the status text.
-  useLayoutEffect(() => {
-    const el = resultsRef.current
-    if (!el) return
-    el.replaceChildren() // this.$results.fill()
-
+  // Render / Quick — build the result groups and set the status text.
+  const groups = (() => {
     if (!prep.chain) {
-      setStatus('(no query)') // Quick()
-      return
+      return { status: '(no query)', nodes: null as React.ReactNode }
     }
     const comments = (data.message as EntityList<Message>) || []
     const pages = data.content as EntityList<Content>
     if (!comments.length) {
-      setStatus('(none)')
-      return
+      return { status: '(none)', nodes: null }
     }
-    setStatus(comments.length)
-    if (prep.merge) {
-      el.append(draw_result(comments as Message[], pages))
-    } else {
-      el.append(...comments.map((msg) => draw_result(msg, pages)))
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data])
+    const nodes = prep.merge
+      ? [<SearchResultGroup key="merge" comment={comments as Message[]} pages={pages} />]
+      : comments.map((msg) => <SearchResultGroup key={msg.id} comment={msg} pages={pages} />)
+    return { status: comments.length, nodes }
+  })()
+
+  useLayoutEffect(() => {
+    setStatus(groups.status)
+  }, [groups.status])
 
   // go(dir) — recompute the query from the form + pagination and re-navigate the (focused) slot.
   const go = (dir: number | null): void => {
@@ -411,7 +401,7 @@ function CommentsComponent({ data, loc, header }: ViewComponentProps): React.JSX
             <button name="next">▶</button>
           </div>
         </form>
-        <div ref={resultsRef} className="comment-search-results" />
+        <div className="comment-search-results">{groups.nodes}</div>
       </div>
       <div>
         <MessageInfo selected={selected} onClose={() => setSelected(null)} />

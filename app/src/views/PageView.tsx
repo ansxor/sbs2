@@ -32,7 +32,8 @@ import { Settings } from '../services/settings'
 import { Edit } from '../services/edit'
 import { avatar_url } from '../services/draw'
 import { ResizeTracker, type Scroller } from '../services/scroller'
-import { MessageList } from '../services/message-list'
+import { MessageList, type MessageListHandle } from '../services/message-list'
+import { MessageListComponent } from '../components/messages/MessageList'
 import { StatusDisplay } from '../services/status-display'
 // (Apx import removed — pixel_art setting's Apx.start/stop now lives in settings-modules.ts.)
 import { print } from '../services/sidebar-log'
@@ -74,12 +75,6 @@ interface ModuleCommand {
   subcommands: Record<string, ModuleSubcommand>
 }
 
-// Minimal linked-list node shape for my_last_message's walk (message-list.ts's concrete `Part` /
-// `ListNode` types are not exported; mirror the walk shape locally and cast through it).
-interface LNode {
-  prev: LNode
-  data: Message
-}
 
 // The read_input / write_input working object: either the edited Message (cast) or a freshly-built
 // new-message draft.
@@ -188,15 +183,17 @@ function PageView({ data, header }: ViewComponentProps): React.JSX.Element {
 
   // ---- refs: imperative instances / fields (page.js instance fields) ----
   const scrollerRef = useRef<Scroller | null>(null)
-  const listRef = useRef<MessageList | null>(null)
-  const pinnedListRef = useRef<MessageList | null>(null)
+  const listRef = useRef<MessageListHandle | null>(null)
+  const pinnedHandleRef = useRef<MessageListHandle | null>(null)
   const editingRef = useRef<Message | null>(null)
   const replyingToRef = useRef<Message | null>(null)
   const preEditRef = useRef<Draft | null>(null)
   const preEditReplyingToRef = useRef<Message | null>(null)
 
-  // ---- state: MessageInfo selection (set-only; the only React state) ----
+  // ---- state: MessageInfo selection (set-only) ----
   const [infoMessage, setInfoMessage] = useState<Message | null>(null)
+  // Whether to show the pinned messages list above the main chat.
+  const [showPinned, setShowPinned] = useState(false)
 
   // resizable content/chat divider (page.js:191 `new ResizeBar($page_container, $resize_handle,
   // 'top', 'setting--divider-pos-'+page_id, null)`).
@@ -239,11 +236,10 @@ function PageView({ data, header }: ViewComponentProps): React.JSX.Element {
   const my_last_message = (): Message | null => {
     const list = listRef.current
     if (!list) return null
-    const sentinel = list as unknown as LNode
     let cnt = 0
-    for (let node = sentinel.prev; node !== sentinel; node = node.prev) {
+    for (const msg of list.messages().reverse()) {
       if (cnt++ > 100) break
-      if (node.data.createUserId == Req.uid) return node.data
+      if (msg.createUserId == Req.uid) return msg
     }
     return null
   }
@@ -433,28 +429,32 @@ function PageView({ data, header }: ViewComponentProps): React.JSX.Element {
   }
 
   // page.js:202 update_pinned — a second, separate MessageList prepended above the load-older
-  // controls, via the Scroller's print_top so it can't jump the scroll position.
+  // controls. In the React port this is rendered as a sibling MessageListComponent; the Scroller
+  // still measures it inside print_top because its mount is committed before the parent's
+  // layout effects / after_print run.
   const update_pinned = (): void => {
     Entity.link_comments({ message: pinned, user: users })
-    const listEl = document.createElement('message-list')
-    pinnedListRef.current = new MessageList(listEl, page_id)
-
-    const separator = document.createElement('div')
-    separator.className = 'messageGap'
-
-    scrollerRef.current!.print_top(() => {
-      extraRef.current!.prepend(separator)
-      extraRef.current!.prepend(listEl)
-      for (const msg of pinned) pinnedListRef.current!.display_edge(msg)
-    })
+    setShowPinned(pinned instanceof Array && pinned.length > 0)
   }
+
+  const [pinnedHost, setPinnedHost] = useState<HTMLElement | null>(null)
+
+  const onPinnedReady = (handle: MessageListHandle): void => {
+    pinnedHandleRef.current = handle
+  }
+
+  const pinnedHostRef = (el: HTMLElement | null): void => {
+    if (el) setPinnedHost(el)
+  }
+
+
 
   // ---- island onReady handlers ----
   const onScrollerReady = (s: Scroller): void => {
     scrollerRef.current = s
   }
   // page.js:151/165-166 — stash the list, then display the initial (id_desc) batch oldest-first.
-  const onListReady = (l: MessageList): void => {
+  const onListReady = (l: MessageListHandle): void => {
     listRef.current = l
     for (let i = messages.length - 1; i >= 0; i--) l.display_edge(messages[i])
   }
@@ -664,6 +664,19 @@ function PageView({ data, header }: ViewComponentProps): React.JSX.Element {
       </resize-handle>
 
       <ScrollerHost className="FILL" onReady={onScrollerReady}>
+        {showPinned && (
+          <>
+            <message-list ref={pinnedHostRef} class="message-list">
+              <MessageListComponent
+                ref={onPinnedReady}
+                pageId={page_id}
+                host={pinnedHost}
+                initialMessages={pinned}
+              />
+            </message-list>
+            <div className="messageGap" />
+          </>
+        )}
         <div ref={extraRef}>
           <button onClick={onLoadOlder}>load older messages</button>
           <label>

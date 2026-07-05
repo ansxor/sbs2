@@ -1,28 +1,14 @@
-// Imperative island: the chat MessageList (ARCHITECTURE §0/§8.2/§10 L6a; rendering.md messages.js).
+// React island: the chat MessageList (ARCHITECTURE §0/§8.2/§10 L6a).
 //
-// `services/message-list.ts` (L4b) is the verbatim imperative controller — circular linked list,
-// positional DOM building, the shared `<message-controls>` singleton, the `message_control`
-// CustomEvent capture-phase injection, `%uid%` in-place text mutation, and the tri-state
-// `display_live` return. This component is the thin React host: it renders an EMPTY
-// `<message-list>` container, hands it to a `MessageList` in a `useLayoutEffect`, subscribes to
-// `Events.messages` / `Events.after_messages` imperatively under a private view identity, and
-// disposes on unmount. **React never renders a message** — no JSX children, no
-// `dangerouslySetInnerHTML`; the controller owns everything inside the container.
-//
-// The old views wired this by hand:
-//   - page.js:152,165-166,169-174 — `new MessageList($message_list, page_id)`, `display_edge`
-//     the initial batch, then `Events.messages.listen(this, m=>this.display_live(m))` +
-//     `Events.after_messages.listen(this, ()=>this.scroller.unlock())`, torn down by
-//     `Events.destroy(this)` on nav.
-//   - comments.js:219-225 — a static `new MessageList(inner, contentId)` populated with
-//     `display_edge` / `display_only`, no live subscription.
-// Both reduce to: create the controller (exposed via `onReady` so the view can populate the
-// initial edges and drive its Scroller), optionally subscribe live. The live handlers are held in
-// refs so a re-render can't stale-close them AND can't recreate the controller (which would drop
-// the linked list / DOM). Subscription args are forwarded verbatim — `Events.messages` fires
-// `(comments, message_event)`, matching the old `(messages)=>…` closure.
-import { useLayoutEffect, useRef } from 'react'
-import { MessageList } from '../services/message-list'
+// The message list is now rendered with idiomatic React components via
+// components/messages/MessageList.tsx. This component renders the <message-list> host directly
+// and mounts MessageListComponent as a child (it renders a fragment of <message-block>s into the
+// host). The list instance is exposed through an imperative handle so the parent view can call
+// display_edge, display_live, etc. Live Events.messages / Events.after_messages subscriptions are
+// wired in a layout effect and torn down on unmount.
+import { useLayoutEffect, useRef, useState } from 'react'
+import { MessageListComponent, type MessageListHandle } from '../components/messages/MessageList'
+import type { RoomFilterProps } from '../components/messages/MessageList'
 import { Events } from '../services/events'
 import type { Id } from '../data/types'
 
@@ -30,18 +16,15 @@ export interface MessageListViewProps {
   // Page / content id the list belongs to (`MessageList` pid). page.js passes page_id;
   // comments.js passes `comment.contentId`.
   pageId: Id
-  // editpage/comment editing flag forwarded to the controller (`_edit`); default falsy.
+  // editpage/comment editing flag forwarded to the list.
   edit?: boolean
-  // Multi-room mode (All view): when set, the list accepts messages from any room
-  // in this set. The `pageId` is still used as the pid (fallback / dataset).
+  // Multi-room mode (All view): when set, the list accepts messages from any room in this set.
   rooms?: Set<Id>
-  // Called once, synchronously, right after the controller is created and before live
-  // subscription — the view populates the initial messages here (display_edge loop / display_only)
-  // and stashes the instance for its own imperative use (Scroller coordination, send_message).
-  onReady?: (list: MessageList) => void
-  // Live-batch handlers. When present the island subscribes to the corresponding bus category;
-  // args are forwarded verbatim from the fire (`messages` fires `(comments, message_event)`).
-  // The view closes over its own stashed `list` (as page.js closed over `this.list`).
+  // AllView-specific room filter data passed through to the list component.
+  roomFilter?: RoomFilterProps
+  // Called once, synchronously, right after the list is mounted and before live subscription.
+  onReady?: (list: MessageListHandle) => void
+  // Live-batch handlers. Args are forwarded verbatim from the bus fire.
   onMessages?: (...data: unknown[]) => void
   onAfterMessages?: (...data: unknown[]) => void
 }
@@ -50,16 +33,17 @@ export function MessageListView({
   pageId,
   edit,
   rooms,
+  roomFilter,
   onReady,
   onMessages,
   onAfterMessages,
 }: MessageListViewProps) {
-  const ref = useRef<HTMLElement>(null)
+  const hostRef = useRef<HTMLElement | null>(null)
+  const handleRef = useRef<MessageListHandle | null>(null)
+  const [mounted, setMounted] = useState(false)
 
-  // Latest callbacks, held in refs so a re-render (e.g. an inline `onReady`/`onMessages`) can't
-  // stale-close them AND can't land in the effect deps below — which would recreate the whole
-  // MessageList and drop its linked list + DOM. Only pageId/edit (a genuinely different list)
-  // recreate the controller.
+  // Latest callbacks, held in refs so a re-render can't stale-close them AND can't land in
+  // the effect deps below, which would recreate the subscriptions.
   const onReadyRef = useRef(onReady)
   const onMessagesRef = useRef(onMessages)
   const onAfterMessagesRef = useRef(onAfterMessages)
@@ -67,16 +51,26 @@ export function MessageListView({
   onMessagesRef.current = onMessages
   onAfterMessagesRef.current = onAfterMessages
 
-  useLayoutEffect(() => {
-    const list = new MessageList(ref.current!, pageId, edit, rooms)
+  const setHost = (el: HTMLElement | null): void => {
+    if (el) {
+      el.classList.add('message-list')
+      hostRef.current = el
+      setMounted(true)
+    }
+  }
 
-    // Private per-instance bus key: `Events.destroy(view)` bulk-removes every listener registered
-    // under it, isolating this island's live subscription from the view's other listeners.
-    const view = {}
+  const setHandle = (handle: MessageListHandle | null): void => {
+    handleRef.current = handle
+  }
+
+  // Wire live subscriptions once the component is mounted and expose the handle to the parent.
+  useLayoutEffect(() => {
+    if (!mounted) return
 
     // page.js populates the initial edges (and stashes the list) BEFORE subscribing live.
-    onReadyRef.current?.(list)
+    onReadyRef.current?.(handleRef.current!)
 
+    const view = {}
     Events.messages.listen(view, (...data: unknown[]) => {
       onMessagesRef.current?.(...data)
     })
@@ -85,16 +79,22 @@ export function MessageListView({
     })
 
     return () => {
-      // Reproduces the old `Events.destroy(this)` on nav teardown. React only removes
-      // the `<message-list>` container on a real unmount; in StrictMode's development
-      // double-invoke the same DOM node is reused, so the controller must be destroyed
-      // explicitly to drop its listeners and clear the linked list / rendered blocks.
       Events.destroy(view)
-      list.destroy()
     }
-    // Stable identity deps only — never the callbacks (kept in refs above).
-    // `rooms` is included so a room-set change recreates the list (All view toggles).
-  }, [pageId, edit, rooms])
+  }, [mounted])
 
-  return <message-list ref={ref} />
+  return (
+    <message-list ref={setHost}>
+      {mounted && (
+        <MessageListComponent
+          ref={setHandle}
+          pageId={pageId}
+          edit={edit}
+          rooms={rooms}
+          roomFilter={roomFilter}
+          host={hostRef.current}
+        />
+      )}
+    </message-list>
+  )
 }
