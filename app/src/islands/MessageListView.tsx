@@ -32,6 +32,9 @@ export interface MessageListViewProps {
   pageId: Id
   // editpage/comment editing flag forwarded to the controller (`_edit`); default falsy.
   edit?: boolean
+  // Multi-room mode (All view): when set, the list accepts messages from any room
+  // in this set. The `pageId` is still used as the pid (fallback / dataset).
+  rooms?: Set<Id>
   // Called once, synchronously, right after the controller is created and before live
   // subscription — the view populates the initial messages here (display_edge loop / display_only)
   // and stashes the instance for its own imperative use (Scroller coordination, send_message).
@@ -46,6 +49,7 @@ export interface MessageListViewProps {
 export function MessageListView({
   pageId,
   edit,
+  rooms,
   onReady,
   onMessages,
   onAfterMessages,
@@ -64,7 +68,7 @@ export function MessageListView({
   onAfterMessagesRef.current = onAfterMessages
 
   useLayoutEffect(() => {
-    const list = new MessageList(ref.current!, pageId, edit)
+    const list = new MessageList(ref.current!, pageId, edit, rooms)
 
     // Private per-instance bus key: `Events.destroy(view)` bulk-removes every listener registered
     // under it, isolating this island's live subscription from the view's other listeners.
@@ -81,14 +85,16 @@ export function MessageListView({
     })
 
     return () => {
-      // Reproduces the old `Events.destroy(this)` on nav teardown. React removes the
-      // `<message-list>` container itself, disposing the controller's DOM and its
-      // `message_control` capture listener with it.
+      // Reproduces the old `Events.destroy(this)` on nav teardown. React only removes
+      // the `<message-list>` container on a real unmount; in StrictMode's development
+      // double-invoke the same DOM node is reused, so the controller must be destroyed
+      // explicitly to drop its listeners and clear the linked list / rendered blocks.
       Events.destroy(view)
-      list.unsubscribeBlocks?.()
+      list.destroy()
     }
     // Stable identity deps only — never the callbacks (kept in refs above).
-  }, [pageId, edit])
+    // `rooms` is included so a room-set change recreates the list (All view toggles).
+  }, [pageId, edit, rooms])
 
   return <message-list ref={ref} />
 }

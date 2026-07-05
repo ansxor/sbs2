@@ -177,11 +177,22 @@ export class MessageList {
   max_parts = 500
   // Cleanup for the reactive block-list subscription installed below.
   unsubscribeBlocks?: () => void
+  // Multi-room mode (All view): when set, the list accepts messages from any
+  // room in this set instead of only `this.pid`. Single-room mode (rooms is
+  // undefined) preserves the original pid-equality behavior exactly.
+  rooms?: Set<Id>
 
-  constructor(element: HTMLElement, pid: Id, _edit?: boolean) {
+  // Capture listener registered in the constructor so it can be removed on destroy.
+  private readonly _messageControlHandler = (ev: Event): void => {
+    const part = this.parts.get(+((ev.target as HTMLElement).dataset.id as string))
+    if (part) (ev as CustomEvent<MessageControlDetail>).detail.data = part.data // eeehehe
+  }
+
+  constructor(element: HTMLElement, pid: Id, _edit?: boolean, rooms?: Set<Id>) {
     this.$list = element
     this.$list.classList.add('message-list') // todo: just create a new elem <message-list> ?
     this.pid = pid
+    this.rooms = rooms
 
     this.parts = new Map()
     // top, bottom
@@ -189,14 +200,7 @@ export class MessageList {
 
     // this listens for events created by the message edit/info buttons
     // and modifies the event to add the message data
-    this.$list.addEventListener(
-      'message_control',
-      (ev) => {
-        const part = this.parts.get(+((ev.target as HTMLElement).dataset.id as string))
-        if (part) (ev as CustomEvent<MessageControlDetail>).detail.data = part.data // eeehehe
-      },
-      { capture: true },
-    )
+    this.$list.addEventListener('message_control', this._messageControlHandler, { capture: true })
 
     // Hide/show existing messages when the block list changes.
     this.unsubscribeBlocks = subscribeBlocks(() => {
@@ -204,6 +208,17 @@ export class MessageList {
     })
 
     Object.seal(this)
+  }
+
+  // Tear down the imperative controller. Called from the React island cleanup so that
+  // StrictMode's double-invoke does not leave stale listeners, DOM, or linked-list state.
+  destroy(): void {
+    this.unsubscribeBlocks?.()
+    this.unsubscribeBlocks = undefined
+    this.$list.removeEventListener('message_control', this._messageControlHandler, { capture: true })
+    this.$list.replaceChildren()
+    this.parts.clear()
+    this.next = this.prev = this
   }
 
   // Toggle the 'blocked' class on every rendered message-block to match the current user block list.
@@ -215,7 +230,19 @@ export class MessageList {
     }
   }
 
+  // Multi-room helper: true if msg belongs to this list (pid match, or room-set
+  // membership when in multi-room mode). In single-room mode this is just
+  // `msg.contentId == this.pid`.
+  isForThisList(msg: Message): boolean {
+    if (this.rooms) return this.rooms.has(msg.contentId)
+    return msg.contentId == this.pid
+  }
+
   check_merge(top: Message, bottom: Message): boolean {
+    // In multi-room mode, consecutive messages must be from the same room to
+    // merge into one block. Single-room mode preserves the original behavior
+    // (all messages share one contentId, so the check is redundant).
+    if (this.rooms && top.contentId != bottom.contentId) return false
     if (top.Author.merge_hash == bottom.Author.merge_hash)
       if (Math.abs(bottom.Author.date.getTime() - top.Author.date.getTime()) <= 1e3 * 60 * 5)
         return true
@@ -432,7 +459,7 @@ export class MessageList {
       return null
     }
     // moved to other room
-    if (msg.contentId != this.pid) {
+    if (!this.isForThisList(msg)) {
       if (!msg.edited) print('warning: impossible? ', id)
       this.remove(existing)
       return null
@@ -470,7 +497,7 @@ export class MessageList {
     }
 
     // deleted, or for another room
-    if (msg.deleted || msg.contentId != this.pid) return null
+    if (msg.deleted || !this.isForThisList(msg)) return null
 
     const prev = this.prev
     if (prev == this) {
@@ -675,6 +702,7 @@ export class MessageList {
     const module = comment.module
 
     e.dataset.uid = String(comment.createUserId)
+    e.dataset.pid = String(comment.contentId)
     if (isUserBlocked(comment.createUserId)) e.classList.add('blocked')
     if (module === null) {
       const avatar = tmpl_avatar()
